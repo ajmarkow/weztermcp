@@ -118,38 +118,19 @@ export default class WeztermExecutor {
   }
 
   async splitPane(
-    windowId: number,
-    tabId: number,
+    paneId: number,
     direction: "Right" | "Left" | "Top" | "Bottom"
   ): Promise<{ content: any[] }> {
     const dirFlag = `--${direction.toLowerCase()}`;
     try {
-      const { stdout: listJson } = await execAsync(
-        `${this.weztermCli} list --format json`
-      );
-      const panes: { window_id: number; tab_id: number; pane_id: number }[] =
-        JSON.parse(listJson);
-      const target = panes.find(
-        (p) => p.window_id === windowId && p.tab_id === tabId
-      );
-      if (!target) {
-        return {
-          content: [
-            {
-              type: "text",
-              text: `No pane found for window ${windowId}, tab ${tabId}.`,
-            },
-          ],
-        };
-      }
       const { stdout } = await execAsync(
-        `${this.weztermCli} split-pane --pane-id ${target.pane_id} ${dirFlag}`
+        `${this.weztermCli} split-pane --pane-id ${paneId} ${dirFlag}`
       );
       return {
         content: [
           {
             type: "text",
-            text: `Split pane ${target.pane_id} ${direction}. New pane id: ${stdout.trim()}`,
+            text: `Split pane ${paneId} ${direction}. New pane id: ${stdout.trim()}`,
           },
         ],
       };
