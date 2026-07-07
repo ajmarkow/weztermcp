@@ -11,7 +11,7 @@ import SendControlCharacter from "./send_control_character.js";
 
 const server = new Server(
   {
-    name: "wezterm-mcp",
+    name: "weztermcp",
     version: "0.1.0",
   },
   {
