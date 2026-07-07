@@ -29,7 +29,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         name: "wezterm_pane_write",
         title: "Write to WezTerm Pane",
         description:
-          "EXECUTION TOOL. Transmits a command or text to a specific WezTerm pane by ID and executes it. WHEN: 'run this command', 'execute in pane', 'send to terminal'. Returns confirmation text only — does NOT return command output; follow with wezterm_pane_read to capture results. Example: write 'npm test' to pane 3.",
+          "EXECUTION TOOL. Transmits a command or text to a specific WezTerm pane by ID and executes it. WHEN: 'run this command', 'execute in pane', 'send to terminal'. Returns confirmation text only — does NOT return command output; follow with wezterm_pane_read to capture results. SECURITY: this runs arbitrary shell commands with the user's full permissions in a live terminal. Confirm with the user before sending destructive or irreversible commands (e.g. rm, git push --force, database migrations). Example: write 'npm test' to pane 3.",
         inputSchema: {
           type: "object",
           properties: {
@@ -121,7 +121,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         name: "wezterm_pane_close",
         title: "Close WezTerm Pane",
         description:
-          "EXECUTION TOOL. Terminates and removes a WezTerm pane by ID, killing any process running inside it. WHEN: 'close pane', 'kill pane', 'remove terminal', 'clean up pane'. Destructive and irreversible — any unsaved state in the pane is lost. Does NOT close tabs or windows. Returns confirmation only. Example: close pane 4 after a finished build job.",
+          "EXECUTION TOOL. Terminates and removes a WezTerm pane by ID, killing any process running inside it. WHEN: 'close pane', 'kill pane', 'remove terminal', 'clean up pane'. Destructive and irreversible — any unsaved state in the pane is lost. Does NOT close tabs or windows. Returns confirmation only. SECURITY: confirm with the user before closing a pane that may be running an unsaved or long-lived process. Example: close pane 4 after a finished build job.",
         inputSchema: {
           type: "object",
           properties: {
