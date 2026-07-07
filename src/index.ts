@@ -101,6 +101,20 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         },
       },
       {
+        name: "close_pane",
+        description: "Closes a WezTerm pane by its pane ID",
+        inputSchema: {
+          type: "object",
+          properties: {
+            pane_id: {
+              type: "number",
+              description: "ID of the pane to close",
+            },
+          },
+          required: ["pane_id"],
+        },
+      },
+      {
         name: "split_pane",
         description:
           "Splits a WezTerm pane in the specified direction, returning the new pane ID",
@@ -170,6 +184,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
 
     case "switch_pane":
       return await executor.switchPane(request.params.arguments.pane_id);
+
+    case "close_pane":
+      return await executor.closePane(request.params.arguments.pane_id);
 
     case "split_pane":
       return await executor.splitPane(

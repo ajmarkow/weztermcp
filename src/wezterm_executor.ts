@@ -117,6 +117,19 @@ export default class WeztermExecutor {
     }
   }
 
+  async closePane(paneId: number): Promise<{ content: any[] }> {
+    try {
+      await execAsync(`${this.weztermCli} kill-pane --pane-id ${paneId}`);
+      return {
+        content: [{ type: "text", text: `Closed pane ${paneId}` }],
+      };
+    } catch (error: any) {
+      return {
+        content: [{ type: "text", text: `Failed to close pane ${paneId}: ${error.message}` }],
+      };
+    }
+  }
+
   async splitPane(
     paneId: number,
     direction: "Right" | "Left" | "Top" | "Bottom"

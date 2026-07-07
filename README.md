@@ -15,6 +15,7 @@ It allows you to control WezTerm from Claude Desktop and other MCP clients.
 | `list_panes` | — | — | Lists all panes in the current WezTerm window |
 | `switch_pane` | `pane_id: number` | — | Switches focus to the specified pane |
 | `write_to_specific_pane` | `command: string`, `pane_id: number` | — | Writes text or runs a command in a specific pane by ID |
+| `close_pane` | `pane_id: number` | — | Closes the specified pane |
 | `split_pane` | `pane_id: number`, `direction: "Right"\|"Left"\|"Top"\|"Bottom"` | — | Splits the specified pane and returns the new pane ID |
 
 ## Installation
