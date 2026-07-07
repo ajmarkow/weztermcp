@@ -43,7 +43,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: "read_terminal_output",
-        description: "Reads output from the active WezTerm pane",
+        description: "Reads output from the active WezTerm pane or a specific pane",
         inputSchema: {
           type: "object",
           properties: {
@@ -51,6 +51,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
               type: "number",
               description:
                 "Number of lines to read from the terminal (default: 50)",
+            },
+            pane_id: {
+              type: "number",
+              description:
+                "ID of the pane to read from (optional, defaults to current pane)",
             },
           },
         },
@@ -126,7 +131,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
 
     case "read_terminal_output":
       const lines = request.params.arguments.lines || 50;
-      return await outputReader.readOutput(lines);
+      const paneId = request.params.arguments.pane_id;
+      return await outputReader.readOutput(lines, paneId);
 
     case "send_control_character":
       return await controlCharSender.send(request.params.arguments.character);

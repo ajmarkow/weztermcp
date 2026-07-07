@@ -10,17 +10,18 @@ export default class WeztermOutputReader {
     this.weztermCli = "wezterm cli";
   }
 
-  async readOutput(lines: number = 50): Promise<{ content: any[] }> {
+  async readOutput(lines: number = 50, paneId?: number): Promise<{ content: any[] }> {
     try {
       let command: string;
+      const paneOption = paneId !== undefined ? ` --pane-id ${paneId}` : '';
 
       if (lines <= 0) {
         // 全ての内容を取得（現在の画面のみ）
-        command = `${this.weztermCli} get-text --escapes`;
+        command = `${this.weztermCli} get-text --escapes${paneOption}`;
       } else {
         // 指定された行数分を取得（スクロールバックから）
         const startLine = -lines;
-        command = `${this.weztermCli} get-text --escapes --start-line ${startLine}`;
+        command = `${this.weztermCli} get-text --escapes --start-line ${startLine}${paneOption}`;
       }
 
       const { stdout } = await execAsync(command);
@@ -46,10 +47,11 @@ export default class WeztermOutputReader {
   }
 
   // 現在の画面内容のみを取得する新しいメソッド
-  async readCurrentScreen(): Promise<{ content: any[] }> {
+  async readCurrentScreen(paneId?: number): Promise<{ content: any[] }> {
     try {
+      const paneOption = paneId !== undefined ? ` --pane-id ${paneId}` : '';
       const { stdout } = await execAsync(
-        `${this.weztermCli} get-text --escapes`
+        `${this.weztermCli} get-text --escapes${paneOption}`
       );
 
       return {
