@@ -135,3 +135,6 @@ dist
 .pnp.*
 
 build/
+
+# others
+OLD-TODOs.md
