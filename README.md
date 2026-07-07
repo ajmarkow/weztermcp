@@ -40,3 +40,15 @@ To use with Claude Desktop, add the server config:
   }
 }
 ```
+
+## Releasing
+
+Publishing to npm is automated via `.github/workflows/publish.yml`. On every push to `main`, CI runs the test suite and build, then publishes to npm if `package.json`'s `version` field isn't already published — no publish happens if the version is unchanged.
+
+To cut a release:
+
+1. Bump `version` in `package.json` (e.g. `npm version patch`, `npm version minor`, or edit directly).
+2. Commit and push to `main`.
+3. CI runs tests, builds, and publishes automatically if the tests pass and the version is new.
+
+Publishing requires an `NPM_TOKEN` repository secret (an npm access token with publish rights to this package) configured in GitHub repo settings.
