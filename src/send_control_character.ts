@@ -1,5 +1,6 @@
 import { exec } from "child_process";
 import { promisify } from "util";
+import { assertWeztermInstalled, notInstalledResult } from "./wezterm_check";
 
 const execAsync = promisify(exec);
 
@@ -11,6 +12,8 @@ export default class SendControlCharacter {
   }
 
   async send(character: string, paneId?: number): Promise<{ content: any[] }> {
+    const err = await assertWeztermInstalled();
+    if (err) return notInstalledResult();
     try {
       const controlMap: { [key: string]: string } = {
         c: "\\x03", // Ctrl+C

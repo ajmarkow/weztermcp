@@ -1,10 +1,12 @@
 import { exec } from "child_process";
 
-// child_processモジュールをモック化
 jest.mock("child_process");
+jest.mock("../src/wezterm_check", () => ({
+  assertWeztermInstalled: jest.fn().mockResolvedValue(null),
+  notInstalledResult: jest.fn(),
+}));
 const mockedExec = jest.mocked(exec);
 
-// 各クラスのインポート
 import WeztermExecutor from "../src/wezterm_executor";
 import WeztermOutputReader from "../src/wezterm_output_reader";
 import SendControlCharacter from "../src/send_control_character";

@@ -1,8 +1,11 @@
 import { exec } from "child_process";
 import SendControlCharacter from "../src/send_control_character";
 
-// child_processモジュールをモック化
 jest.mock("child_process");
+jest.mock("../src/wezterm_check", () => ({
+  assertWeztermInstalled: jest.fn().mockResolvedValue(null),
+  notInstalledResult: jest.fn(),
+}));
 const mockedExec = jest.mocked(exec);
 
 describe("SendControlCharacter", () => {

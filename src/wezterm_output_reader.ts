@@ -1,5 +1,6 @@
 import { exec } from "child_process";
 import { promisify } from "util";
+import { assertWeztermInstalled, notInstalledResult } from "./wezterm_check";
 
 const execAsync = promisify(exec);
 
@@ -11,15 +12,15 @@ export default class WeztermOutputReader {
   }
 
   async readOutput(lines: number = 50, paneId?: number): Promise<{ content: any[] }> {
+    const err = await assertWeztermInstalled();
+    if (err) return notInstalledResult();
     try {
       let command: string;
       const paneOption = paneId !== undefined ? ` --pane-id ${paneId}` : '';
 
       if (lines <= 0) {
-        // 全ての内容を取得（現在の画面のみ）
         command = `${this.weztermCli} get-text --escapes${paneOption}`;
       } else {
-        // 指定された行数分を取得（スクロールバックから）
         const startLine = -lines;
         command = `${this.weztermCli} get-text --escapes --start-line ${startLine}${paneOption}`;
       }
@@ -46,8 +47,9 @@ export default class WeztermOutputReader {
     }
   }
 
-  // 現在の画面内容のみを取得する新しいメソッド
   async readCurrentScreen(paneId?: number): Promise<{ content: any[] }> {
+    const err = await assertWeztermInstalled();
+    if (err) return notInstalledResult();
     try {
       const paneOption = paneId !== undefined ? ` --pane-id ${paneId}` : '';
       const { stdout } = await execAsync(

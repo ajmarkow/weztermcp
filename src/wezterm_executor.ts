@@ -1,5 +1,6 @@
 import { exec } from "child_process";
 import { promisify } from "util";
+import { assertWeztermInstalled, notInstalledResult } from "./wezterm_check";
 
 const execAsync = promisify(exec);
 
@@ -14,6 +15,8 @@ export default class WeztermExecutor {
     command: string,
     paneId: number
   ): Promise<{ content: any[] }> {
+    const err = await assertWeztermInstalled();
+    if (err) return notInstalledResult();
     try {
       const escapedCommand = command.replace(/'/g, "'\"'\"'");
       await execAsync(
@@ -40,8 +43,9 @@ export default class WeztermExecutor {
   }
 
   async listPanes(): Promise<{ content: any[] }> {
+    const err = await assertWeztermInstalled();
+    if (err) return notInstalledResult();
     try {
-      // 正しいコマンドは 'list' です
       const { stdout } = await execAsync(`${this.weztermCli} list`);
       return {
         content: [
@@ -64,6 +68,8 @@ export default class WeztermExecutor {
   }
 
   async switchPane(paneId: number): Promise<{ content: any[] }> {
+    const err = await assertWeztermInstalled();
+    if (err) return notInstalledResult();
     try {
       await execAsync(`${this.weztermCli} activate-pane --pane-id ${paneId}`);
       return {
@@ -87,6 +93,8 @@ export default class WeztermExecutor {
   }
 
   async closePane(paneId: number): Promise<{ content: any[] }> {
+    const err = await assertWeztermInstalled();
+    if (err) return notInstalledResult();
     try {
       await execAsync(`${this.weztermCli} kill-pane --pane-id ${paneId}`);
       return {
@@ -103,6 +111,8 @@ export default class WeztermExecutor {
     paneId: number,
     direction: "Right" | "Left" | "Top" | "Bottom"
   ): Promise<{ content: any[] }> {
+    const err = await assertWeztermInstalled();
+    if (err) return notInstalledResult();
     const dirFlag = `--${direction.toLowerCase()}`;
     try {
       const { stdout } = await execAsync(

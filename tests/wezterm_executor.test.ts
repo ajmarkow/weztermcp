@@ -2,8 +2,11 @@ import { exec } from "child_process";
 import { promisify } from "util";
 import WeztermExecutor from "../src/wezterm_executor";
 
-// child_processモジュールをモック化
 jest.mock("child_process");
+jest.mock("../src/wezterm_check", () => ({
+  assertWeztermInstalled: jest.fn().mockResolvedValue(null),
+  notInstalledResult: jest.fn(),
+}));
 const mockedExec = jest.mocked(exec);
 
 describe("WeztermExecutor", () => {
