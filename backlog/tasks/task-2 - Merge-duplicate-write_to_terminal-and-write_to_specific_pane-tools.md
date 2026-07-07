@@ -1,9 +1,11 @@
 ---
 id: TASK-2
 title: Merge duplicate write_to_terminal and write_to_specific_pane tools
-status: To Do
-assignee: []
+status: Done
+assignee:
+  - '@me'
 created_date: '2026-07-07 21:01'
+updated_date: '2026-07-07 21:19'
 labels:
   - mcp
   - cleanup
@@ -20,8 +22,14 @@ Both tools have identical schemas and behavior; duplicate capability is an anti-
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Only one write tool remains
-- [ ] #2 index.ts request handler updated to remove the duplicate case
-- [ ] #3 README tools table updated
-- [ ] #4 Tests updated to reflect the merged tool
+- [x] #1 Only one write tool remains
+- [x] #2 index.ts request handler updated to remove the duplicate case
+- [x] #3 README tools table updated
+- [x] #4 Tests updated to reflect the merged tool
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Removed write_to_specific_pane tool and writeToSpecificPane method — both were identical to write_to_terminal/writeToTerminal. Updated index.ts handler, README tools table, and all tests.
+<!-- SECTION:NOTES:END -->
