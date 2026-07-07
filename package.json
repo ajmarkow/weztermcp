@@ -1,21 +1,21 @@
 {
-  "name": "wezterm-mcp",
+  "name": "weztermcp",
   "version": "0.1.0",
   "description": "mcp server for wezterm ",
-  "homepage": "https://github.com/hiraishikentaro/wezterm-mcp#readme",
+  "homepage": "https://github.com/ajmarkow/weztermcp#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/hiraishikentaro/wezterm-mcp.git"
+    "url": "git+https://github.com/ajmarkow/weztermcp.git"
   },
-  "author": "Kentaro Hiraishi",
+  "author": "AJ Markow",
   "bin": {
-    "wezterm-mcp": "./build/index.js"
+    "weztermcp": "./build/index.js"
   },
   "files": [
     "build"
   ],
   "bugs": {
-    "url": "https://github.com/hiraishikentaro/wezterm-mcp/issues"
+    "url": "https://github.com/ajmarkow/weztermcp/issues"
   },
   "type": "module",
   "scripts": {

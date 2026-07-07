@@ -33,18 +33,10 @@ To use with Claude Desktop, add the server config:
 ```json
 {
   "mcpServers": {
-    "wezterm-mcp": {
+    "weztermcp": {
       "command": "npx",
-      "args": ["-y", "wezterm-mcp"]
+      "args": ["-y", "weztermcp"]
     }
   }
 }
 ```
-
-To install WezTerm for Claude Desktop automatically via Smithery:
-
-```bash
-npx -y @smithery/cli install @hiraishikentaro/wezterm-mcp --client claude
-```
-
-[![smithery badge](https://smithery.ai/badge/@hiraishikentaro/wezterm-mcp)](https://smithery.ai/server/@hiraishikentaro/wezterm-mcp)

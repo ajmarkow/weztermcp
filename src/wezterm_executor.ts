@@ -1,6 +1,6 @@
 import { exec } from "child_process";
 import { promisify } from "util";
-import { assertWeztermInstalled, notInstalledResult } from "./wezterm_check";
+import { assertWeztermInstalled, notInstalledResult } from "./wezterm_check.js";
 
 const execAsync = promisify(exec);
 

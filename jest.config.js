@@ -8,6 +8,11 @@ export default {
   // テスト環境をNode.jsに設定
   testEnvironment: "node",
 
+  // .js拡張子付きの相対importを.tsとして解決する
+  moduleNameMapper: {
+    "^(\\.{1,2}/.*)\\.js$": "$1",
+  },
+
   // テストファイルのパターン
   testMatch: ["**/tests/**/*.test.ts", "**/tests/**/*.spec.ts"],
 
