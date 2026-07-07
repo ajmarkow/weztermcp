@@ -10,23 +10,20 @@ export default class WeztermExecutor {
     this.weztermCli = "wezterm cli";
   }
 
-  async writeToTerminal(command: string): Promise<{ content: any[] }> {
+  async writeToTerminal(
+    command: string,
+    paneId: number
+  ): Promise<{ content: any[] }> {
     try {
-      // 現在のアクティブペインを確認
-      const { stdout: paneInfo } = await execAsync(`${this.weztermCli} list`);
-
-      // WezTerm CLIを使用してアクティブなペインにテキストを送信
-      // コマンドと改行を一緒に送信して確実に実行
       const escapedCommand = command.replace(/'/g, "'\"'\"'");
       await execAsync(
-        `${this.weztermCli} send-text --no-paste '${escapedCommand}\n'`
+        `${this.weztermCli} send-text --pane-id ${paneId} --no-paste '${escapedCommand}\n'`
       );
-
       return {
         content: [
           {
             type: "text",
-            text: `Command sent to WezTerm: ${command}\n\nCurrent panes:\n${paneInfo}`,
+            text: `Command sent to pane ${paneId}: ${command}`,
           },
         ],
       };

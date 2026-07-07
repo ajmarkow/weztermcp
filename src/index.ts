@@ -28,7 +28,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       {
         name: "write_to_terminal",
         description:
-          "Writes text to the active WezTerm pane - often used to run commands",
+          "Writes text to a specific WezTerm pane - often used to run commands",
         inputSchema: {
           type: "object",
           properties: {
@@ -37,8 +37,12 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
               description:
                 "The command to run or text to write to the terminal",
             },
+            pane_id: {
+              type: "number",
+              description: "ID of the pane to write to",
+            },
           },
-          required: ["command"],
+          required: ["command", "pane_id"],
         },
       },
       {
@@ -152,7 +156,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
 
   switch (request.params.name) {
     case "write_to_terminal":
-      return await executor.writeToTerminal(request.params.arguments.command);
+      return await executor.writeToTerminal(
+        request.params.arguments.command,
+        request.params.arguments.pane_id
+      );
 
     case "read_terminal_output":
       const lines = request.params.arguments.lines || 50;

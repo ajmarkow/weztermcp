@@ -9,7 +9,7 @@ It allows you to control WezTerm from Claude Desktop and other MCP clients.
 
 | Tool | Required Args | Optional Args | Description |
 |---|---|---|---|
-| `write_to_terminal` | `command: string` | — | Writes text or runs a command in the active pane |
+| `write_to_terminal` | `command: string`, `pane_id: number` | — | Writes text or runs a command in the specified pane |
 | `read_terminal_output` | — | `lines: number` (default 50), `pane_id: number` | Reads output from the active pane or a specific pane by ID |
 | `send_control_character` | `character: string` | — | Sends a control character to the active pane (e.g. `"c"` for Ctrl+C) |
 | `list_panes` | — | — | Lists all panes in the current WezTerm window |
