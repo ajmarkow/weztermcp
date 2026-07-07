@@ -99,7 +99,6 @@ export default class WeztermExecutor {
 
   async switchPane(paneId: number): Promise<{ content: any[] }> {
     try {
-      // activate-paneコマンドの正しい形式を使用
       await execAsync(`${this.weztermCli} activate-pane --pane-id ${paneId}`);
       return {
         content: [
@@ -115,6 +114,54 @@ export default class WeztermExecutor {
           {
             type: "text",
             text: `Failed to switch pane: ${error.message}\nMake sure the pane ID ${paneId} exists.`,
+          },
+        ],
+      };
+    }
+  }
+
+  async splitPane(
+    windowId: number,
+    tabId: number,
+    direction: "Right" | "Left" | "Top" | "Bottom"
+  ): Promise<{ content: any[] }> {
+    const dirFlag = `--${direction.toLowerCase()}`;
+    try {
+      const { stdout: listJson } = await execAsync(
+        `${this.weztermCli} list --format json`
+      );
+      const panes: { window_id: number; tab_id: number; pane_id: number }[] =
+        JSON.parse(listJson);
+      const target = panes.find(
+        (p) => p.window_id === windowId && p.tab_id === tabId
+      );
+      if (!target) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: `No pane found for window ${windowId}, tab ${tabId}.`,
+            },
+          ],
+        };
+      }
+      const { stdout } = await execAsync(
+        `${this.weztermCli} split-pane --pane-id ${target.pane_id} ${dirFlag}`
+      );
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Split pane ${target.pane_id} ${direction}. New pane id: ${stdout.trim()}`,
+          },
+        ],
+      };
+    } catch (error: any) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Failed to split pane: ${error.message}`,
           },
         ],
       };

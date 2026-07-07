@@ -97,6 +97,31 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         },
       },
       {
+        name: "split_pane",
+        description:
+          "Splits a pane in a given WezTerm window and tab in the specified direction, returning the new pane ID",
+        inputSchema: {
+          type: "object",
+          properties: {
+            window_id: {
+              type: "number",
+              description: "ID of the window containing the tab to split",
+            },
+            tab_id: {
+              type: "number",
+              description: "ID of the tab whose pane should be split",
+            },
+            direction: {
+              type: "string",
+              enum: ["Right", "Left", "Top", "Bottom"],
+              description:
+                "Direction of the split: Right, Left, Top, or Bottom",
+            },
+          },
+          required: ["window_id", "tab_id", "direction"],
+        },
+      },
+      {
         name: "write_to_specific_pane",
         description: "Writes text to a specific WezTerm pane by pane ID",
         inputSchema: {
@@ -142,6 +167,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
 
     case "switch_pane":
       return await executor.switchPane(request.params.arguments.pane_id);
+
+    case "split_pane":
+      return await executor.splitPane(
+        request.params.arguments.window_id,
+        request.params.arguments.tab_id,
+        request.params.arguments.direction
+      );
 
     case "write_to_specific_pane":
       return await executor.writeToSpecificPane(
