@@ -51,4 +51,4 @@ To cut a release:
 2. Commit and push to `main`.
 3. CI runs tests, builds, and publishes automatically if the tests pass and the version is new.
 
-Publishing requires an `NPM_TOKEN` repository secret (an npm access token with publish rights to this package) configured in GitHub repo settings.
+Publishing requires an `INFISICAL_NPM_TOKEN` repository secret (an npm access token with publish rights to this package), synced via Infisical's GitHub secrets integration.
