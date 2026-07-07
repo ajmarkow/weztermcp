@@ -9,13 +9,13 @@ It allows you to control WezTerm from Claude Desktop and other MCP clients.
 
 | Tool | Required Args | Optional Args | Description |
 |---|---|---|---|
-| `write_to_terminal` | `command: string`, `pane_id: number` | — | Writes text or runs a command in the specified pane |
-| `read_terminal_output` | — | `lines: number` (default 50), `pane_id: number` | Reads output from the active pane or a specific pane by ID |
-| `send_control_character` | `character: string`, `pane_id: number` | — | Sends a control character to the specified pane (e.g. `"c"` for Ctrl+C) |
-| `list_panes` | — | — | Lists all panes in the current WezTerm window |
-| `switch_pane` | `pane_id: number` | — | Switches focus to the specified pane |
-| `close_pane` | `pane_id: number` | — | Closes the specified pane |
-| `split_pane` | `pane_id: number`, `direction: "Right"\|"Left"\|"Top"\|"Bottom"` | — | Splits the specified pane and returns the new pane ID |
+| `wezterm_pane_write` | `command: string`, `pane_id: number` | — | Writes text or runs a command in the specified pane |
+| `wezterm_pane_read` | — | `lines: number` (default 50), `pane_id: number` | Reads output from a pane's scrollback buffer |
+| `wezterm_pane_send_key` | `character: string`, `pane_id: number` | — | Sends a control character to the specified pane (e.g. `"c"` for Ctrl+C) |
+| `wezterm_pane_list` | — | — | Lists all panes in the current WezTerm session |
+| `wezterm_pane_switch` | `pane_id: number` | — | Switches focus to the specified pane |
+| `wezterm_pane_close` | `pane_id: number` | — | Closes the specified pane |
+| `wezterm_pane_split` | `pane_id: number`, `direction: "Right"\|"Left"\|"Top"\|"Bottom"` | — | Splits the specified pane and returns the new pane ID |
 
 ## Installation
 

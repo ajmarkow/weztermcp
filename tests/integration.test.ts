@@ -109,7 +109,7 @@ describe("Integration Tests", () => {
       const switchResult = await executor.switchPane(2);
       expect(switchResult.content[0].text).toBe("Switched to pane 2");
 
-      // write to a specific pane using write_to_terminal
+      // write to a specific pane using wezterm_pane_write
       mockedExec.mockImplementationOnce((command: string, callback: any) => {
         expect(command).toContain("--pane-id 2");
         expect(command).toContain("ls");
