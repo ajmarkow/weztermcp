@@ -27,6 +27,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
     tools: [
       {
         name: "wezterm_pane_write",
+        title: "Write to WezTerm Pane",
         description:
           "EXECUTION TOOL. Transmits a command or text to a specific WezTerm pane by ID and executes it. WHEN: 'run this command', 'execute in pane', 'send to terminal'. Returns confirmation text only — does NOT return command output; follow with wezterm_pane_read to capture results. Example: write 'npm test' to pane 3.",
         inputSchema: {
@@ -35,11 +36,12 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             command: {
               type: "string",
               description:
-                "The command to run or text to write to the terminal",
+                "Text to send to the pane. A newline (\\n) is automatically appended, causing the shell to execute the input as a command. To type text without executing, omit a trailing newline by ending with a space or partial input — but note this tool always appends \\n, so use wezterm_pane_send_key for raw control sequences instead.",
             },
             pane_id: {
               type: "number",
-              description: "ID of the pane to write to",
+              description:
+                "Integer ID of the target pane. Obtain valid IDs from wezterm_pane_list. Must be a currently open pane.",
             },
           },
           required: ["command", "pane_id"],
@@ -47,6 +49,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: "wezterm_pane_read",
+        title: "Read WezTerm Pane Output",
         description:
           "EXECUTION TOOL. Captures recent visible text from a WezTerm pane's scrollback buffer. WHEN: 'show terminal output', 'what did the command print', 'read pane output'. Returns up to N lines of text (default 50). Does NOT execute commands; use wezterm_pane_write first. Example: read 100 lines from pane 2 after running a build.",
         inputSchema: {
@@ -55,18 +58,19 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             lines: {
               type: "number",
               description:
-                "Number of lines to read from the terminal (default: 50)",
+                "Number of lines to read from the scrollback buffer. Default: 50. Use 0 or a negative value to read the current screen only (no scrollback). Large values (e.g. 500) capture more history but may include stale output.",
             },
             pane_id: {
               type: "number",
               description:
-                "ID of the pane to read from (optional, defaults to current pane)",
+                "Integer ID of the pane to read from. Default: the currently active pane. Obtain valid IDs from wezterm_pane_list.",
             },
           },
         },
       },
       {
         name: "wezterm_pane_send_key",
+        title: "Send Control Key to WezTerm Pane",
         description:
           "EXECUTION TOOL. Injects a terminal control character (Ctrl+key) into a specific WezTerm pane. WHEN: 'interrupt process', 'send Ctrl+C', 'stop running command', 'send EOF'. Supported keys: c d z l a e k u w. Does NOT send printable text — use wezterm_pane_write for that. Returns confirmation; no output captured. Example: send 'c' to pane 1 to kill a hung process.",
         inputSchema: {
@@ -74,11 +78,13 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           properties: {
             character: {
               type: "string",
-              description: "Control character to send (e.g., 'c' for Ctrl+C)",
+              description:
+                "Single letter key to combine with Ctrl. Case-insensitive. Supported values: 'c' (SIGINT), 'd' (EOF), 'z' (SIGTSTP), 'l' (clear screen), 'a' (start of line), 'e' (end of line), 'k' (kill to end), 'u' (kill to start), 'w' (kill word). Any other value returns an error.",
             },
             pane_id: {
               type: "number",
-              description: "ID of the pane to send the character to",
+              description:
+                "Integer ID of the target pane. Obtain valid IDs from wezterm_pane_list. Must be a currently open pane.",
             },
           },
           required: ["character", "pane_id"],
@@ -86,6 +92,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: "wezterm_pane_list",
+        title: "List WezTerm Panes",
         description:
           "EXECUTION TOOL. Enumerates all open panes in the current WezTerm session, returning pane IDs, active state, and titles. WHEN: 'what panes are open', 'show pane list', 'which pane is active', 'find pane ID'. Does NOT switch focus or read pane content. Use returned pane_id values with other tools. Example: call before wezterm_pane_write to discover the target pane_id.",
         inputSchema: {
@@ -95,6 +102,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: "wezterm_pane_switch",
+        title: "Switch WezTerm Pane Focus",
         description:
           "EXECUTION TOOL. Activates a WezTerm pane by ID, moving keyboard focus to it. WHEN: 'switch to pane', 'focus pane', 'activate pane', 'move to terminal'. Returns confirmation only — does NOT read content or send input. Use wezterm_pane_list first to resolve the correct pane_id. Example: switch to pane 2 to bring an editor pane into focus.",
         inputSchema: {
@@ -102,7 +110,8 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           properties: {
             pane_id: {
               type: "number",
-              description: "ID of the pane to switch to",
+              description:
+                "Integer ID of the pane to activate. Obtain valid IDs from wezterm_pane_list. Must be a currently open pane.",
             },
           },
           required: ["pane_id"],
@@ -110,6 +119,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: "wezterm_pane_close",
+        title: "Close WezTerm Pane",
         description:
           "EXECUTION TOOL. Terminates and removes a WezTerm pane by ID, killing any process running inside it. WHEN: 'close pane', 'kill pane', 'remove terminal', 'clean up pane'. Destructive and irreversible — any unsaved state in the pane is lost. Does NOT close tabs or windows. Returns confirmation only. Example: close pane 4 after a finished build job.",
         inputSchema: {
@@ -117,7 +127,8 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           properties: {
             pane_id: {
               type: "number",
-              description: "ID of the pane to close",
+              description:
+                "Integer ID of the pane to close. Obtain valid IDs from wezterm_pane_list. Closing the last pane in a tab will close the tab.",
             },
           },
           required: ["pane_id"],
@@ -125,6 +136,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: "wezterm_pane_split",
+        title: "Split WezTerm Pane",
         description:
           "EXECUTION TOOL. Divides an existing WezTerm pane into two by splitting in the given direction (Right, Left, Top, Bottom), opening a new shell in the new pane. WHEN: 'split terminal', 'open new pane', 'create side-by-side panes'. Returns the new pane's ID — store it to target subsequent commands. Does NOT send any input to the new pane. Example: split pane 1 Right, then wezterm_pane_write to the returned pane ID.",
         inputSchema: {
@@ -132,13 +144,14 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           properties: {
             pane_id: {
               type: "number",
-              description: "ID of the pane to split",
+              description:
+                "Integer ID of the pane to split. Obtain valid IDs from wezterm_pane_list. The existing pane retains its content; the new pane opens a fresh shell.",
             },
             direction: {
               type: "string",
               enum: ["Right", "Left", "Top", "Bottom"],
               description:
-                "Direction of the split: Right, Left, Top, or Bottom",
+                "Direction in which to create the new pane relative to the existing one. 'Right' and 'Left' split vertically (side by side); 'Top' and 'Bottom' split horizontally (stacked). Must be exactly one of: Right, Left, Top, Bottom (case-sensitive).",
             },
           },
           required: ["pane_id", "direction"],
