@@ -21,7 +21,7 @@ const server = new Server(
   }
 );
 
-// ツールの定義
+// Tool definitions
 server.setRequestHandler(ListToolsRequestSchema, async () => {
   return {
     tools: [
@@ -148,7 +148,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
   };
 });
 
-// ツールの実行
+// Tool execution
 server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
   const executor = new WeztermExecutor();
   const outputReader = new WeztermOutputReader();
