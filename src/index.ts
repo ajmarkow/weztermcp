@@ -28,7 +28,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       {
         name: "write_to_terminal",
         description:
-          "Writes text to a specific WezTerm pane - often used to run commands",
+          "EXECUTION TOOL. Transmits a command or text to a specific WezTerm pane by ID and executes it. WHEN: 'run this command', 'execute in pane', 'send to terminal'. Returns confirmation text only — does NOT return command output; follow with read_terminal_output to capture results. Example: write 'npm test' to pane 3.",
         inputSchema: {
           type: "object",
           properties: {
@@ -47,7 +47,8 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: "read_terminal_output",
-        description: "Reads output from the active WezTerm pane or a specific pane",
+        description:
+          "EXECUTION TOOL. Captures recent visible text from a WezTerm pane's scrollback buffer. WHEN: 'show terminal output', 'what did the command print', 'read pane output'. Returns up to N lines of text (default 50). Does NOT execute commands; use write_to_terminal first. Example: read 100 lines from pane 2 after running a build.",
         inputSchema: {
           type: "object",
           properties: {
@@ -66,7 +67,8 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: "send_control_character",
-        description: "Sends a control character to a WezTerm pane",
+        description:
+          "EXECUTION TOOL. Injects a terminal control character (Ctrl+key) into a specific WezTerm pane. WHEN: 'interrupt process', 'send Ctrl+C', 'stop running command', 'send EOF'. Supported keys: c d z l a e k u w. Does NOT send printable text — use write_to_terminal for that. Returns confirmation; no output captured. Example: send 'c' to pane 1 to kill a hung process.",
         inputSchema: {
           type: "object",
           properties: {
@@ -84,7 +86,8 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: "list_panes",
-        description: "Lists all panes in the current WezTerm window",
+        description:
+          "EXECUTION TOOL. Enumerates all open panes in the current WezTerm session, returning pane IDs, active state, and titles. WHEN: 'what panes are open', 'show pane list', 'which pane is active', 'find pane ID'. Does NOT switch focus or read pane content. Use returned pane_id values with other tools. Example: call before write_to_terminal to discover the target pane_id.",
         inputSchema: {
           type: "object",
           properties: {},
@@ -92,7 +95,8 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: "switch_pane",
-        description: "Switches to a specific pane in WezTerm",
+        description:
+          "EXECUTION TOOL. Activates a WezTerm pane by ID, moving keyboard focus to it. WHEN: 'switch to pane', 'focus pane', 'activate pane', 'move to terminal'. Returns confirmation only — does NOT read content or send input. Use list_panes first to resolve the correct pane_id. Example: switch to pane 2 to bring an editor pane into focus.",
         inputSchema: {
           type: "object",
           properties: {
@@ -106,7 +110,8 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: "close_pane",
-        description: "Closes a WezTerm pane by its pane ID",
+        description:
+          "EXECUTION TOOL. Terminates and removes a WezTerm pane by ID, killing any process running inside it. WHEN: 'close pane', 'kill pane', 'remove terminal', 'clean up pane'. Destructive and irreversible — any unsaved state in the pane is lost. Does NOT close tabs or windows. Returns confirmation only. Example: close pane 4 after a finished build job.",
         inputSchema: {
           type: "object",
           properties: {
@@ -121,7 +126,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       {
         name: "split_pane",
         description:
-          "Splits a WezTerm pane in the specified direction, returning the new pane ID",
+          "EXECUTION TOOL. Divides an existing WezTerm pane into two by splitting in the given direction (Right, Left, Top, Bottom), opening a new shell in the new pane. WHEN: 'split terminal', 'open new pane', 'create side-by-side panes'. Returns the new pane's ID — store it to target subsequent commands. Does NOT send any input to the new pane. Example: split pane 1 Right, then write_to_terminal to the returned pane ID.",
         inputSchema: {
           type: "object",
           properties: {
