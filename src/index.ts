@@ -135,25 +135,6 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           required: ["pane_id", "direction"],
         },
       },
-      {
-        name: "write_to_specific_pane",
-        description: "Writes text to a specific WezTerm pane by pane ID",
-        inputSchema: {
-          type: "object",
-          properties: {
-            command: {
-              type: "string",
-              description:
-                "The command to run or text to write to the terminal",
-            },
-            pane_id: {
-              type: "number",
-              description: "ID of the pane to write to",
-            },
-          },
-          required: ["command", "pane_id"],
-        },
-      },
     ],
   };
 });
@@ -192,12 +173,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
       return await executor.splitPane(
         request.params.arguments.pane_id,
         request.params.arguments.direction
-      );
-
-    case "write_to_specific_pane":
-      return await executor.writeToSpecificPane(
-        request.params.arguments.command,
-        request.params.arguments.pane_id
       );
 
     default:

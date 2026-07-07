@@ -38,8 +38,8 @@ describe("Integration Tests", () => {
         return {} as any;
       });
 
-      const writeResult = await executor.writeToTerminal('echo "hello"');
-      expect(writeResult.content[0].text).toContain("Command sent to WezTerm");
+      const writeResult = await executor.writeToTerminal('echo "hello"', 1);
+      expect(writeResult.content[0].text).toContain("Command sent to pane 1");
 
       // 2. 出力読み取り
       const readResult = await outputReader.readOutput(10);
@@ -63,7 +63,7 @@ describe("Integration Tests", () => {
       });
 
       // WeztermExecutorのエラー
-      const writeResult = await executor.writeToTerminal("test");
+      const writeResult = await executor.writeToTerminal("test", 1);
       expect(writeResult.content[0].text).toContain(
         "Failed to write to terminal"
       );
@@ -107,7 +107,7 @@ describe("Integration Tests", () => {
       const switchResult = await executor.switchPane(2);
       expect(switchResult.content[0].text).toBe("Switched to pane 2");
 
-      // 特定のペインにコマンド送信
+      // write to a specific pane using write_to_terminal
       mockedExec.mockImplementationOnce((command: string, callback: any) => {
         expect(command).toContain("--pane-id 2");
         expect(command).toContain("ls");
@@ -115,10 +115,8 @@ describe("Integration Tests", () => {
         return {} as any;
       });
 
-      const writeToSpecificResult = await executor.writeToSpecificPane("ls", 2);
-      expect(writeToSpecificResult.content[0].text).toBe(
-        "Command sent to pane 2: ls"
-      );
+      const writeResult = await executor.writeToTerminal("ls", 2);
+      expect(writeResult.content[0].text).toBe("Command sent to pane 2: ls");
     });
   });
 
@@ -138,7 +136,7 @@ describe("Integration Tests", () => {
 
       const promises: Promise<{ content: any[] }>[] = [];
       for (let i = 0; i < 5; i++) {
-        promises.push(executor.writeToTerminal(`echo "test ${i}"`));
+        promises.push(executor.writeToTerminal(`echo "test ${i}"`, i));
       }
 
       const results = await Promise.all(promises);

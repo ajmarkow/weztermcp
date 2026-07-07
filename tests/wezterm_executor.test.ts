@@ -53,36 +53,6 @@ describe("WeztermExecutor", () => {
     });
   });
 
-  describe("writeToSpecificPane", () => {
-    it("指定されたペインにコマンドを送信できること", async () => {
-      mockedExec.mockImplementation((command: string, callback: any) => {
-        expect(command).toContain("--pane-id 123");
-        callback(null, { stdout: "", stderr: "" });
-        return {} as any; // ChildProcessのモック
-      });
-
-      const result = await executor.writeToSpecificPane("ls -la", 123);
-
-      expect(result.content).toHaveLength(1);
-      expect(result.content[0].type).toBe("text");
-      expect(result.content[0].text).toBe("Command sent to pane 123: ls -la");
-    });
-
-    it("ペイン指定でエラーが発生した場合にエラーメッセージを返すこと", async () => {
-      mockedExec.mockImplementation((command: string, callback: any) => {
-        callback(new Error("Pane not found"), null);
-        return {} as any; // ChildProcessのモック
-      });
-
-      const result = await executor.writeToSpecificPane("ls", 999);
-
-      expect(result.content).toHaveLength(1);
-      expect(result.content[0].type).toBe("text");
-      expect(result.content[0].text).toContain("Failed to write to pane 999");
-      expect(result.content[0].text).toContain("Pane not found");
-    });
-  });
-
   describe("listPanes", () => {
     it("ペイン一覧を正常に取得できること", async () => {
       const mockPaneList = `pane_id=1 active=true title="Terminal"

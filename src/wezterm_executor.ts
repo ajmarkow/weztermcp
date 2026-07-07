@@ -39,37 +39,6 @@ export default class WeztermExecutor {
     }
   }
 
-  async writeToSpecificPane(
-    command: string,
-    paneId: number
-  ): Promise<{ content: any[] }> {
-    try {
-      // 指定されたペインにコマンドを送信
-      const escapedCommand = command.replace(/'/g, "'\"'\"'");
-      await execAsync(
-        `${this.weztermCli} send-text --pane-id ${paneId} --no-paste '${escapedCommand}\n'`
-      );
-
-      return {
-        content: [
-          {
-            type: "text",
-            text: `Command sent to pane ${paneId}: ${command}`,
-          },
-        ],
-      };
-    } catch (error: any) {
-      return {
-        content: [
-          {
-            type: "text",
-            text: `Failed to write to pane ${paneId}: ${error.message}`,
-          },
-        ],
-      };
-    }
-  }
-
   async listPanes(): Promise<{ content: any[] }> {
     try {
       // 正しいコマンドは 'list' です
