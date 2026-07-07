@@ -28,6 +28,19 @@ describe("SendControlCharacter", () => {
       expect(result.content[0].text).toBe("Sent control character: Ctrl+C");
     });
 
+    it("pane_idが指定された場合、--pane-idフラグが追加されること", async () => {
+      mockedExec.mockImplementation((command: string, callback: any) => {
+        expect(command).toContain("--pane-id 42");
+        expect(command).toContain("send-text");
+        callback(null, { stdout: "", stderr: "" });
+        return {} as any;
+      });
+
+      const result = await controlCharSender.send("c", 42);
+
+      expect(result.content[0].text).toBe("Sent control character: Ctrl+C");
+    });
+
     it("Ctrl+Dを正常に送信できること", async () => {
       mockedExec.mockImplementation((command: string, callback: any) => {
         expect(command).toContain("send-text $'\\x04'");

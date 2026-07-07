@@ -66,7 +66,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       },
       {
         name: "send_control_character",
-        description: "Sends control characters to the active WezTerm pane",
+        description: "Sends a control character to a WezTerm pane",
         inputSchema: {
           type: "object",
           properties: {
@@ -74,8 +74,12 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
               type: "string",
               description: "Control character to send (e.g., 'c' for Ctrl+C)",
             },
+            pane_id: {
+              type: "number",
+              description: "ID of the pane to send the character to",
+            },
           },
-          required: ["character"],
+          required: ["character", "pane_id"],
         },
       },
       {
@@ -158,7 +162,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
       return await outputReader.readOutput(lines, paneId);
 
     case "send_control_character":
-      return await controlCharSender.send(request.params.arguments.character);
+      return await controlCharSender.send(
+        request.params.arguments.character,
+        request.params.arguments.pane_id
+      );
 
     case "list_panes":
       return await executor.listPanes();

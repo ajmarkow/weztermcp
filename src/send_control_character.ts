@@ -10,7 +10,7 @@ export default class SendControlCharacter {
     this.weztermCli = "wezterm cli";
   }
 
-  async send(character: string): Promise<{ content: any[] }> {
+  async send(character: string, paneId?: number): Promise<{ content: any[] }> {
     try {
       const controlMap: { [key: string]: string } = {
         c: "\\x03", // Ctrl+C
@@ -29,7 +29,8 @@ export default class SendControlCharacter {
         throw new Error(`Unknown control character: ${character}`);
       }
 
-      await execAsync(`${this.weztermCli} send-text $'${controlSeq}'`);
+      const paneFlag = paneId !== undefined ? ` --pane-id ${paneId}` : "";
+      await execAsync(`${this.weztermCli} send-text${paneFlag} $'${controlSeq}'`);
 
       return {
         content: [
