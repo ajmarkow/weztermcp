@@ -1,9 +1,11 @@
 ---
 id: TASK-15
 title: Add server-level instructions field to guide agents on cross-tool workflows
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@me'
 created_date: '2026-07-07 22:01'
+updated_date: '2026-07-08 02:46'
 labels:
   - mcp
   - docs
@@ -20,10 +22,16 @@ Per MCP blog post on server instructions (blog.modelcontextprotocol.io/posts/202
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 instructions field added to the Server constructor in src/index.ts
-- [ ] #2 Instructions capture the write-then-read pane pattern (wezterm_pane_write does not return output)
-- [ ] #3 Instructions note wezterm_pane_list as the recommended first call to discover pane_id
-- [ ] #4 Instructions flag wezterm_pane_close as destructive/irreversible
-- [ ] #5 Instructions avoid duplicating existing tool description content per the article's anti-pattern guidance
+- [x] #1 instructions field added to the Server constructor in src/index.ts
+- [x] #2 Instructions capture the write-then-read pane pattern (wezterm_pane_write does not return output)
+- [x] #3 Instructions note wezterm_pane_list as the recommended first call to discover pane_id
+- [x] #4 Instructions flag wezterm_pane_close as destructive/irreversible
+- [x] #5 Instructions avoid duplicating existing tool description content per the article's anti-pattern guidance
 - [ ] #6 Manually verified in an MCP client that supports server instructions (e.g. ask the agent 'does this server have special instructions?')
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Added instructions field to the second Server() constructor arg (ServerOptions), alongside capabilities — confirmed via the MCP SDK's server/index.d.ts type. Kept to 3 sentences covering only cross-tool relationships not expressible in a single tool's description: write-then-read pattern, list-before-target discovery order, and close-is-destructive warning. AC #6 (manual verification in a live MCP client) still open — needs a client that surfaces server instructions.
+<!-- SECTION:NOTES:END -->
