@@ -51,4 +51,4 @@ To cut a release:
 2. Commit and push to `main`.
 3. CI runs tests, builds, and publishes automatically if the tests pass and the version is new.
 
-Publishing requires an `INFISICAL_NPM_TOKEN` repository secret (an npm access token with publish rights to this package), synced via Infisical's GitHub secrets integration.
+Publishing uses [npm trusted publishing](https://docs.npmjs.com/trusted-publishers) via OIDC — no npm token or repository secret is needed. The `weztermcp` package on npmjs.com must have this repo's `publish.yml` workflow configured as a trusted publisher (Package Settings → Trusted Publisher on npmjs.com), and the workflow's `publish` job grants itself `id-token: write` to mint the short-lived OIDC credential at publish time.
