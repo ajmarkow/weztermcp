@@ -141,11 +141,7 @@ describe("Integration Tests", () => {
 
       mockedExec.mockImplementation((command: string, callback: any) => {
         // 即座にコールバックを呼び出す（遅延なし）
-        if (command.includes("list")) {
-          callback(null, { stdout: "pane_id=1 active=true", stderr: "" });
-        } else {
-          callback(null, { stdout: "", stderr: "" });
-        }
+        callback(null, { stdout: "", stderr: "" });
         return {} as any;
       });
 
