@@ -10,7 +10,7 @@ It allows you to control WezTerm from Claude Desktop and other MCP clients.
 | Tool | Required Args | Optional Args | Description |
 |---|---|---|---|
 | `wezterm_pane_write` | `command: string`, `pane_id: number` | — | Writes text or runs a command in the specified pane |
-| `wezterm_pane_read` | — | `lines: number` (default 50), `pane_id: number` | Reads output from a pane's scrollback buffer |
+| `wezterm_pane_read` | `pane_id: number` | `lines: number` (default 50) | Reads output from a pane's scrollback buffer |
 | `wezterm_pane_send_key` | `character: string`, `pane_id: number` | — | Sends a control character to the specified pane (e.g. `"c"` for Ctrl+C) |
 | `wezterm_pane_list` | — | `window_id: number`, `tab_id: number` | Lists panes, scoped to the active window/tab by default |
 | `wezterm_pane_switch` | `pane_id: number` | — | Switches focus to the specified pane |

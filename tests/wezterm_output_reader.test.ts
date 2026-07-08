@@ -21,12 +21,20 @@ describe("WeztermOutputReader", () => {
       const mockOutput = "line1\nline2\nline3\n";
       mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
         expect(file).toBe("wezterm");
-        expect(args).toEqual(["cli", "get-text", "--escapes", "--start-line", "-50"]);
+        expect(args).toEqual([
+          "cli",
+          "get-text",
+          "--escapes",
+          "--pane-id",
+          "1",
+          "--start-line",
+          "-50",
+        ]);
         callback(null, { stdout: mockOutput, stderr: "" });
         return {} as any;
       });
 
-      const result = await outputReader.readOutput(50);
+      const result = await outputReader.readOutput(1, 50);
 
       expect(result.content).toHaveLength(1);
       expect(result.content[0].type).toBe("text");
@@ -36,12 +44,20 @@ describe("WeztermOutputReader", () => {
     it("reads 50 lines by default", async () => {
       const mockOutput = "default output";
       mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
-        expect(args).toEqual(["cli", "get-text", "--escapes", "--start-line", "-50"]);
+        expect(args).toEqual([
+          "cli",
+          "get-text",
+          "--escapes",
+          "--pane-id",
+          "1",
+          "--start-line",
+          "-50",
+        ]);
         callback(null, { stdout: mockOutput, stderr: "" });
         return {} as any;
       });
 
-      const result = await outputReader.readOutput();
+      const result = await outputReader.readOutput(1);
 
       expect(result.content).toHaveLength(1);
       expect(result.content[0].text).toBe(mockOutput);
@@ -50,12 +66,12 @@ describe("WeztermOutputReader", () => {
     it("fetches all content when 0 or fewer lines are specified", async () => {
       const mockOutput = "full screen content";
       mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
-        expect(args).toEqual(["cli", "get-text", "--escapes"]);
+        expect(args).toEqual(["cli", "get-text", "--escapes", "--pane-id", "1"]);
         callback(null, { stdout: mockOutput, stderr: "" });
         return {} as any;
       });
 
-      const result = await outputReader.readOutput(0);
+      const result = await outputReader.readOutput(1, 0);
 
       expect(result.content).toHaveLength(1);
       expect(result.content[0].text).toBe(mockOutput);
@@ -64,12 +80,12 @@ describe("WeztermOutputReader", () => {
     it("fetches all content when a negative number of lines is specified", async () => {
       const mockOutput = "full screen content";
       mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
-        expect(args).toEqual(["cli", "get-text", "--escapes"]);
+        expect(args).toEqual(["cli", "get-text", "--escapes", "--pane-id", "1"]);
         callback(null, { stdout: mockOutput, stderr: "" });
         return {} as any;
       });
 
-      const result = await outputReader.readOutput(-10);
+      const result = await outputReader.readOutput(1, -10);
 
       expect(result.content).toHaveLength(1);
       expect(result.content[0].text).toBe(mockOutput);
@@ -81,7 +97,7 @@ describe("WeztermOutputReader", () => {
         return {} as any;
       });
 
-      const result = await outputReader.readOutput(10);
+      const result = await outputReader.readOutput(1, 10);
 
       expect(result.content).toHaveLength(1);
       expect(result.content[0].type).toBe("text");
@@ -94,7 +110,7 @@ describe("WeztermOutputReader", () => {
         return {} as any;
       });
 
-      const result = await outputReader.readOutput(20);
+      const result = await outputReader.readOutput(1, 20);
 
       expect(result.content).toHaveLength(1);
       expect(result.content[0].type).toBe("text");
@@ -105,45 +121,30 @@ describe("WeztermOutputReader", () => {
       expect(result.content[0].text).toContain("wezterm cli list");
     });
 
-    it("should read output from specific pane when pane_id is provided", async () => {
+    it("reads output from the specified pane", async () => {
       const mockOutput = "pane specific output";
       mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
         expect(args).toEqual([
           "cli",
           "get-text",
           "--escapes",
-          "--start-line",
-          "-30",
           "--pane-id",
           "123",
+          "--start-line",
+          "-30",
         ]);
         callback(null, { stdout: mockOutput, stderr: "" });
         return {} as any;
       });
 
-      const result = await outputReader.readOutput(30, 123);
+      const result = await outputReader.readOutput(123, 30);
 
       expect(result.content).toHaveLength(1);
       expect(result.content[0].type).toBe("text");
       expect(result.content[0].text).toBe(mockOutput);
     });
 
-    it("should not include --pane-id option when pane_id is not provided", async () => {
-      const mockOutput = "default pane output";
-      mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
-        expect(args).toEqual(["cli", "get-text", "--escapes", "--start-line", "-25"]);
-        expect(args).not.toContain("--pane-id");
-        callback(null, { stdout: mockOutput, stderr: "" });
-        return {} as any;
-      });
-
-      const result = await outputReader.readOutput(25);
-
-      expect(result.content).toHaveLength(1);
-      expect(result.content[0].text).toBe(mockOutput);
-    });
-
-    it("should include --pane-id option and exclude --start-line when pane_id is provided with 0 or negative lines", async () => {
+    it("includes --pane-id and excludes --start-line when 0 or negative lines are given", async () => {
       const mockOutput = "full screen from specific pane";
       mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
         expect(args).toEqual(["cli", "get-text", "--escapes", "--pane-id", "456"]);
@@ -152,7 +153,7 @@ describe("WeztermOutputReader", () => {
         return {} as any;
       });
 
-      const result = await outputReader.readOutput(0, 456);
+      const result = await outputReader.readOutput(456, 0);
 
       expect(result.content).toHaveLength(1);
       expect(result.content[0].text).toBe(mockOutput);

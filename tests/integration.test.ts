@@ -49,7 +49,7 @@ describe("Integration Tests", () => {
       expect(writeResult.content[0].text).toContain("Command sent to pane 1");
 
       // 2. Read output
-      const readResult = await outputReader.readOutput(10);
+      const readResult = await outputReader.readOutput(1, 10);
       expect(readResult.content[0].text).toBe("hello\n");
 
       // 3. Send control character
@@ -77,7 +77,7 @@ describe("Integration Tests", () => {
       expect(writeResult.content[0].text).toContain("WezTerm not available");
 
       // WeztermOutputReader error
-      const readResult = await outputReader.readOutput(10);
+      const readResult = await outputReader.readOutput(1, 10);
       expect(readResult.content[0].text).toContain(
         "Failed to read terminal output"
       );

@@ -13,7 +13,7 @@ const server = new Server(
   {
     name: "weztermcp",
     title: "WezTerm MCP Server",
-    version: "0.1.1",
+    version: "0.1.2",
     description: "Control WezTerm panes, tabs, and windows from an MCP client via the WezTerm CLI.",
     websiteUrl: "https://github.com/ajmarkow/weztermcp",
   },
@@ -75,9 +75,10 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             pane_id: {
               type: "number",
               description:
-                "Integer ID of the pane to read from. Default: the currently active pane. Obtain valid IDs from wezterm_pane_list.",
+                "Integer ID of the pane to read from. Obtain valid IDs from wezterm_pane_list.",
             },
           },
+          required: ["pane_id"],
         },
       },
       {
@@ -222,7 +223,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
     case "wezterm_pane_read":
       const lines = request.params.arguments.lines || 50;
       const paneId = request.params.arguments.pane_id;
-      return await outputReader.readOutput(lines, paneId);
+      return await outputReader.readOutput(paneId, lines);
 
     case "wezterm_pane_send_key":
       return await controlCharSender.send(
