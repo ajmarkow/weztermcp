@@ -12,7 +12,10 @@ import SendControlCharacter from "./send_control_character.js";
 const server = new Server(
   {
     name: "weztermcp",
-    version: "0.1.0",
+    title: "WezTerm MCP Server",
+    version: "0.1.1",
+    description: "Control WezTerm panes, tabs, and windows from an MCP client via the WezTerm CLI.",
+    websiteUrl: "https://github.com/ajmarkow/weztermcp",
   },
   {
     capabilities: {
