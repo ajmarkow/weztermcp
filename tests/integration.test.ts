@@ -26,8 +26,13 @@ describe("Integration Tests", () => {
       let callCount = 0;
       mockedExec.mockImplementation((command: string, callback: any) => {
         callCount++;
-        if (command.includes("list")) {
-          callback(null, { stdout: "pane_id=1 active=true", stderr: "" });
+        if (command.includes("list-clients")) {
+          callback(null, { stdout: "[]", stderr: "" });
+        } else if (command.includes("list")) {
+          callback(null, {
+            stdout: JSON.stringify([{ window_id: 1, tab_id: 1, pane_id: 1, title: "Terminal" }]),
+            stderr: "",
+          });
         } else if (command.includes("send-text")) {
           callback(null, { stdout: "", stderr: "" });
         } else if (command.includes("get-text")) {
@@ -90,8 +95,16 @@ describe("Integration Tests", () => {
 
       // ペイン一覧取得
       mockedExec.mockImplementationOnce((command: string, callback: any) => {
-        const paneList = "pane_id=1 active=true\npane_id=2 active=false";
+        const paneList = JSON.stringify([
+          { window_id: 1, tab_id: 1, pane_id: 1, title: "Terminal" },
+          { window_id: 1, tab_id: 1, pane_id: 2, title: "Editor" },
+        ]);
         callback(null, { stdout: paneList, stderr: "" });
+        return {} as any;
+      });
+      mockedExec.mockImplementationOnce((command: string, callback: any) => {
+        // no window_id/tab_id given, so listPanes then queries list-clients
+        callback(null, { stdout: "[]", stderr: "" });
         return {} as any;
       });
 

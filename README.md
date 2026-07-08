@@ -12,10 +12,18 @@ It allows you to control WezTerm from Claude Desktop and other MCP clients.
 | `wezterm_pane_write` | `command: string`, `pane_id: number` | — | Writes text or runs a command in the specified pane |
 | `wezterm_pane_read` | — | `lines: number` (default 50), `pane_id: number` | Reads output from a pane's scrollback buffer |
 | `wezterm_pane_send_key` | `character: string`, `pane_id: number` | — | Sends a control character to the specified pane (e.g. `"c"` for Ctrl+C) |
-| `wezterm_pane_list` | — | — | Lists all panes in the current WezTerm session |
+| `wezterm_pane_list` | — | `window_id: number`, `tab_id: number` | Lists panes, scoped to the active window/tab by default |
 | `wezterm_pane_switch` | `pane_id: number` | — | Switches focus to the specified pane |
 | `wezterm_pane_close` | `pane_id: number` | — | Closes the specified pane |
-| `wezterm_pane_split` | `pane_id: number`, `direction: "Right"\|"Left"\|"Top"\|"Bottom"` | — | Splits the specified pane and returns the new pane ID |
+| `wezterm_pane_split` | `direction: "Right"\|"Left"\|"Top"\|"Bottom"` | `pane_id: number`, `window_id: number`, `tab_id: number` | Splits a pane and returns the new pane ID |
+
+## Multi-window and multi-tab support
+
+`pane_id` is globally unique across all of WezTerm's windows and tabs, so most tools (`wezterm_pane_write`, `wezterm_pane_read`, `wezterm_pane_send_key`, `wezterm_pane_switch`, `wezterm_pane_close`) don't need window/tab scoping — they just target the pane directly.
+
+`wezterm_pane_list` and `wezterm_pane_split` are the exceptions, since they need to know *which* window/tab to operate on when a specific pane isn't given:
+- `wezterm_pane_list` defaults to listing only the panes in the currently focused window and tab. Pass `window_id` and/or `tab_id` to list panes elsewhere.
+- `wezterm_pane_split` defaults to splitting the currently focused pane. If `pane_id` is omitted, pass `window_id`/`tab_id` to split the focused pane within that window/tab instead.
 
 ## Security
 

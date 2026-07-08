@@ -94,10 +94,21 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         name: "wezterm_pane_list",
         title: "List WezTerm Panes",
         description:
-          "EXECUTION TOOL. Enumerates all open panes in the current WezTerm session, returning pane IDs, active state, and titles. WHEN: 'what panes are open', 'show pane list', 'which pane is active', 'find pane ID'. Does NOT switch focus or read pane content. Use returned pane_id values with other tools. Example: call before wezterm_pane_write to discover the target pane_id.",
+          "EXECUTION TOOL. Enumerates open panes, returning pane IDs, window/tab IDs, and titles. WHEN: 'what panes are open', 'show pane list', 'which pane is active', 'find pane ID'. Default (no window_id/tab_id): scoped to the currently active/focused window and tab only, not every pane across every window. Pass window_id and/or tab_id to list panes elsewhere. Does NOT switch focus or read pane content. Use returned pane_id values with other tools. Example: call before wezterm_pane_write to discover the target pane_id.",
         inputSchema: {
           type: "object",
-          properties: {},
+          properties: {
+            window_id: {
+              type: "number",
+              description:
+                "Integer ID of the window to scope the listing to. Default: the window containing the currently focused pane. Combine with wezterm_pane_list (no args) to discover window_id values.",
+            },
+            tab_id: {
+              type: "number",
+              description:
+                "Integer ID of the tab to scope the listing to. Default: the tab containing the currently focused pane. Combine with wezterm_pane_list (no args) to discover tab_id values.",
+            },
+          },
         },
       },
       {
@@ -145,7 +156,17 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             pane_id: {
               type: "number",
               description:
-                "Integer ID of the pane to split. Obtain valid IDs from wezterm_pane_list. The existing pane retains its content; the new pane opens a fresh shell.",
+                "Integer ID of the pane to split. Obtain valid IDs from wezterm_pane_list. The existing pane retains its content; the new pane opens a fresh shell. Default: the currently focused pane, optionally narrowed by window_id/tab_id.",
+            },
+            window_id: {
+              type: "number",
+              description:
+                "Only used when pane_id is omitted. Scopes which window's focused pane is split. Default: the window containing the currently focused pane.",
+            },
+            tab_id: {
+              type: "number",
+              description:
+                "Only used when pane_id is omitted. Scopes which tab's focused pane is split. Default: the tab containing the currently focused pane.",
             },
             direction: {
               type: "string",
@@ -154,7 +175,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
                 "Direction in which to create the new pane relative to the existing one. 'Right' and 'Left' split vertically (side by side); 'Top' and 'Bottom' split horizontally (stacked). Must be exactly one of: Right, Left, Top, Bottom (case-sensitive).",
             },
           },
-          required: ["pane_id", "direction"],
+          required: ["direction"],
         },
       },
     ],
@@ -186,7 +207,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
       );
 
     case "wezterm_pane_list":
-      return await executor.listPanes();
+      return await executor.listPanes(
+        request.params.arguments.window_id,
+        request.params.arguments.tab_id
+      );
 
     case "wezterm_pane_switch":
       return await executor.switchPane(request.params.arguments.pane_id);
@@ -197,7 +221,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
     case "wezterm_pane_split":
       return await executor.splitPane(
         request.params.arguments.pane_id,
-        request.params.arguments.direction
+        request.params.arguments.direction,
+        request.params.arguments.window_id,
+        request.params.arguments.tab_id
       );
 
     default:
