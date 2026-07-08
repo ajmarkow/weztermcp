@@ -16,13 +16,13 @@ describe("Integration Tests", () => {
     jest.clearAllMocks();
   });
 
-  describe("全体的なワークフロー", () => {
-    it("コマンド実行 → 出力読み取り → 制御文字送信の一連の流れが動作すること", async () => {
+  describe("Overall workflow", () => {
+    it("the flow of command execution -> output reading -> control character sending works", async () => {
       const executor = new WeztermExecutor();
       const outputReader = new WeztermOutputReader();
       const controlCharSender = new SendControlCharacter();
 
-      // 1. コマンド実行のモック（writeToTerminalは2回execを呼ぶ：listとsend-text）
+      // 1. Mock command execution (writeToTerminal calls exec twice: list and send-text)
       let callCount = 0;
       mockedExec.mockImplementation((command: string, callback: any) => {
         callCount++;
@@ -36,10 +36,10 @@ describe("Integration Tests", () => {
         } else if (command.includes("send-text")) {
           callback(null, { stdout: "", stderr: "" });
         } else if (command.includes("get-text")) {
-          // 出力読み取り用
+          // For output reading
           callback(null, { stdout: "hello\n", stderr: "" });
         } else {
-          // その他のコマンド
+          // Other commands
           callback(null, { stdout: "", stderr: "" });
         }
         return {} as any;
@@ -48,52 +48,52 @@ describe("Integration Tests", () => {
       const writeResult = await executor.writeToTerminal('echo "hello"', 1);
       expect(writeResult.content[0].text).toContain("Command sent to pane 1");
 
-      // 2. 出力読み取り
+      // 2. Read output
       const readResult = await outputReader.readOutput(10);
       expect(readResult.content[0].text).toBe("hello\n");
 
-      // 3. 制御文字送信
+      // 3. Send control character
       const controlResult = await controlCharSender.send("c");
       expect(controlResult.content[0].text).toBe(
         "Sent control character: Ctrl+C"
       );
     }, 15000);
 
-    it("エラーハンドリングが各クラスで一貫していること", async () => {
+    it("error handling is consistent across each class", async () => {
       const executor = new WeztermExecutor();
       const outputReader = new WeztermOutputReader();
 
-      // 全てのクラスでエラーが発生した場合
+      // When an error occurs in every class
       mockedExec.mockImplementation((command: string, callback: any) => {
         callback(new Error("WezTerm not available"), null);
         return {} as any;
       });
 
-      // WeztermExecutorのエラー
+      // WeztermExecutor error
       const writeResult = await executor.writeToTerminal("test", 1);
       expect(writeResult.content[0].text).toContain(
         "Failed to write to terminal"
       );
       expect(writeResult.content[0].text).toContain("WezTerm not available");
 
-      // WeztermOutputReaderのエラー
+      // WeztermOutputReader error
       const readResult = await outputReader.readOutput(10);
       expect(readResult.content[0].text).toContain(
         "Failed to read terminal output"
       );
       expect(readResult.content[0].text).toContain("WezTerm not available");
 
-      // SendControlCharacterのエラー
+      // SendControlCharacter error
       const controlCharSender = new SendControlCharacter();
       await expect(controlCharSender.send("c")).rejects.toThrow(
         "Failed to send control character: WezTerm not available"
       );
     });
 
-    it("複数のペインでの操作が正常に動作すること", async () => {
+    it("operations across multiple panes work correctly", async () => {
       const executor = new WeztermExecutor();
 
-      // ペイン一覧取得
+      // Get pane list
       mockedExec.mockImplementationOnce((command: string, callback: any) => {
         const paneList = JSON.stringify([
           { window_id: 1, tab_id: 1, pane_id: 1, title: "Terminal" },
@@ -112,7 +112,7 @@ describe("Integration Tests", () => {
       expect(listResult.content[0].text).toContain("pane_id=1");
       expect(listResult.content[0].text).toContain("pane_id=2");
 
-      // ペイン切り替え
+      // Switch pane
       mockedExec.mockImplementationOnce((command: string, callback: any) => {
         expect(command).toContain("activate-pane --pane-id 2");
         callback(null, { stdout: "", stderr: "" });
@@ -135,12 +135,12 @@ describe("Integration Tests", () => {
     });
   });
 
-  describe("パフォーマンステスト", () => {
-    it("大量のコマンド実行が適切に処理されること", async () => {
+  describe("Performance tests", () => {
+    it("a large number of command executions are handled properly", async () => {
       const executor = new WeztermExecutor();
 
       mockedExec.mockImplementation((command: string, callback: any) => {
-        // 即座にコールバックを呼び出す（遅延なし）
+        // Invoke callback immediately (no delay)
         callback(null, { stdout: "", stderr: "" });
         return {} as any;
       });
@@ -155,6 +155,6 @@ describe("Integration Tests", () => {
       results.forEach((result, index) => {
         expect(result.content[0].text).toContain(`echo "test ${index}"`);
       });
-    }, 10000); // 10秒のタイムアウト
+    }, 10000); // 10 second timeout
   });
 });

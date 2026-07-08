@@ -17,7 +17,7 @@ describe("SendControlCharacter", () => {
   });
 
   describe("send", () => {
-    it("Ctrl+Cを正常に送信できること", async () => {
+    it("sends Ctrl+C successfully", async () => {
       mockedExec.mockImplementation((command: string, callback: any) => {
         expect(command).toContain("send-text $'\\x03'");
         callback(null, { stdout: "", stderr: "" });
@@ -31,7 +31,7 @@ describe("SendControlCharacter", () => {
       expect(result.content[0].text).toBe("Sent control character: Ctrl+C");
     });
 
-    it("pane_idが指定された場合、--pane-idフラグが追加されること", async () => {
+    it("adds the --pane-id flag when pane_id is specified", async () => {
       mockedExec.mockImplementation((command: string, callback: any) => {
         expect(command).toContain("--pane-id 42");
         expect(command).toContain("send-text");
@@ -44,7 +44,7 @@ describe("SendControlCharacter", () => {
       expect(result.content[0].text).toBe("Sent control character: Ctrl+C");
     });
 
-    it("Ctrl+Dを正常に送信できること", async () => {
+    it("sends Ctrl+D successfully", async () => {
       mockedExec.mockImplementation((command: string, callback: any) => {
         expect(command).toContain("send-text $'\\x04'");
         callback(null, { stdout: "", stderr: "" });
@@ -58,7 +58,7 @@ describe("SendControlCharacter", () => {
       expect(result.content[0].text).toBe("Sent control character: Ctrl+D");
     });
 
-    it("Ctrl+Zを正常に送信できること", async () => {
+    it("sends Ctrl+Z successfully", async () => {
       mockedExec.mockImplementation((command: string, callback: any) => {
         expect(command).toContain("send-text $'\\x1a'");
         callback(null, { stdout: "", stderr: "" });
@@ -72,7 +72,7 @@ describe("SendControlCharacter", () => {
       expect(result.content[0].text).toBe("Sent control character: Ctrl+Z");
     });
 
-    it("Ctrl+Lを正常に送信できること", async () => {
+    it("sends Ctrl+L successfully", async () => {
       mockedExec.mockImplementation((command: string, callback: any) => {
         expect(command).toContain("send-text $'\\x0c'");
         callback(null, { stdout: "", stderr: "" });
@@ -86,7 +86,7 @@ describe("SendControlCharacter", () => {
       expect(result.content[0].text).toBe("Sent control character: Ctrl+L");
     });
 
-    it("大文字の文字でも正常に動作すること", async () => {
+    it("works correctly with uppercase characters", async () => {
       mockedExec.mockImplementation((command: string, callback: any) => {
         expect(command).toContain("send-text $'\\x03'");
         callback(null, { stdout: "", stderr: "" });
@@ -100,19 +100,19 @@ describe("SendControlCharacter", () => {
       expect(result.content[0].text).toBe("Sent control character: Ctrl+C");
     });
 
-    it("サポートされていない制御文字の場合はエラーを投げること", async () => {
+    it("throws an error for an unsupported control character", async () => {
       await expect(controlCharSender.send("x")).rejects.toThrow(
         "Unknown control character: x"
       );
     });
 
-    it("空文字の場合はエラーを投げること", async () => {
+    it("throws an error for an empty string", async () => {
       await expect(controlCharSender.send("")).rejects.toThrow(
         "Unknown control character: "
       );
     });
 
-    it("WezTermコマンド実行でエラーが発生した場合はエラーを投げること", async () => {
+    it("throws an error when the WezTerm command execution fails", async () => {
       mockedExec.mockImplementation((command: string, callback: any) => {
         callback(new Error("WezTerm not available"), null);
         return {} as any;
@@ -123,7 +123,7 @@ describe("SendControlCharacter", () => {
       );
     });
 
-    // 全ての制御文字のマッピングをテスト
+    // Test all control character mappings
     const controlCharTests = [
       { char: "a", sequence: "\\x01", name: "Ctrl+A" },
       { char: "e", sequence: "\\x05", name: "Ctrl+E" },
@@ -133,7 +133,7 @@ describe("SendControlCharacter", () => {
     ];
 
     controlCharTests.forEach(({ char, sequence, name }) => {
-      it(`${name}を正常に送信できること`, async () => {
+      it(`sends ${name} successfully`, async () => {
         mockedExec.mockImplementation((command: string, callback: any) => {
           expect(command).toContain(`send-text $'${sequence}'`);
           callback(null, { stdout: "", stderr: "" });

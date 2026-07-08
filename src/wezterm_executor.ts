@@ -209,4 +209,32 @@ export default class WeztermExecutor {
       };
     }
   }
+
+  async spawnWindow(cwd?: string): Promise<{ content: any[] }> {
+    const err = await assertWeztermInstalled();
+    if (err) return notInstalledResult();
+    try {
+      const cwdFlag = cwd ? ` --cwd '${cwd.replace(/'/g, "'\"'\"'")}'` : "";
+      const { stdout } = await execAsync(
+        `${this.weztermCli} spawn --new-window${cwdFlag}`
+      );
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Spawned new window. New pane id: ${stdout.trim()}`,
+          },
+        ],
+      };
+    } catch (error: any) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Failed to spawn window: ${error.message}`,
+          },
+        ],
+      };
+    }
+  }
 }

@@ -142,10 +142,10 @@ describe("WeztermExecutor", () => {
       expect(result.content[0].text).toBe("(no panes found)");
     });
 
-    it("ペイン一覧取得でエラーが発生した場合にエラーメッセージを返すこと", async () => {
+    it("returns an error message when listing panes fails", async () => {
       mockedExec.mockImplementation((command: string, callback: any) => {
         callback(new Error("Connection failed"), null);
-        return {} as any; // ChildProcessのモック
+        return {} as any; // Mock ChildProcess
       });
 
       const result = await executor.listPanes();
@@ -287,11 +287,11 @@ describe("WeztermExecutor", () => {
   });
 
   describe("switchPane", () => {
-    it("指定されたペインに切り替えできること", async () => {
+    it("switches to the specified pane", async () => {
       mockedExec.mockImplementation((command: string, callback: any) => {
         expect(command).toContain("activate-pane --pane-id 42");
         callback(null, { stdout: "", stderr: "" });
-        return {} as any; // ChildProcessのモック
+        return {} as any; // Mock ChildProcess
       });
 
       const result = await executor.switchPane(42);
@@ -301,10 +301,10 @@ describe("WeztermExecutor", () => {
       expect(result.content[0].text).toBe("Switched to pane 42");
     });
 
-    it("存在しないペインに切り替えようとした場合にエラーメッセージを返すこと", async () => {
+    it("returns an error message when trying to switch to a nonexistent pane", async () => {
       mockedExec.mockImplementation((command: string, callback: any) => {
         callback(new Error("Pane does not exist"), null);
-        return {} as any; // ChildProcessのモック
+        return {} as any; // Mock ChildProcess
       });
 
       const result = await executor.switchPane(999);
@@ -314,6 +314,44 @@ describe("WeztermExecutor", () => {
       expect(result.content[0].text).toContain("Failed to switch pane");
       expect(result.content[0].text).toContain("Pane does not exist");
       expect(result.content[0].text).toContain("pane ID 999");
+    });
+  });
+
+  describe("spawnWindow", () => {
+    it("spawns a new window and returns the new pane id", async () => {
+      mockedExec.mockImplementation((command: string, callback: any) => {
+        expect(command).toContain("spawn --new-window");
+        callback(null, { stdout: "7\n", stderr: "" });
+        return {} as any;
+      });
+
+      const result = await executor.spawnWindow();
+
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0].type).toBe("text");
+      expect(result.content[0].text).toBe("Spawned new window. New pane id: 7");
+    });
+
+    it("passes cwd flag when provided", async () => {
+      mockedExec.mockImplementation((command: string, callback: any) => {
+        expect(command).toContain("--cwd '/tmp/foo'");
+        callback(null, { stdout: "8\n", stderr: "" });
+        return {} as any;
+      });
+
+      await executor.spawnWindow("/tmp/foo");
+    });
+
+    it("returns error message on failure", async () => {
+      mockedExec.mockImplementation((command: string, callback: any) => {
+        callback(new Error("WezTerm not running"), null);
+        return {} as any;
+      });
+
+      const result = await executor.spawnWindow();
+
+      expect(result.content[0].text).toContain("Failed to spawn window");
+      expect(result.content[0].text).toContain("WezTerm not running");
     });
   });
 });

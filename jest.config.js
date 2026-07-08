@@ -1,22 +1,22 @@
 export default {
-  // TypeScriptファイルをテスト対象に含める
+  // Include TypeScript files as test targets
   preset: "ts-jest/presets/default-esm",
 
-  // ES Modulesを有効にする
+  // Enable ES Modules
   extensionsToTreatAsEsm: [".ts"],
 
-  // テスト環境をNode.jsに設定
+  // Set test environment to Node.js
   testEnvironment: "node",
 
-  // .js拡張子付きの相対importを.tsとして解決する
+  // Resolve relative imports with .js extension as .ts
   moduleNameMapper: {
     "^(\\.{1,2}/.*)\\.js$": "$1",
   },
 
-  // テストファイルのパターン
+  // Test file pattern
   testMatch: ["**/tests/**/*.test.ts", "**/tests/**/*.spec.ts"],
 
-  // TypeScriptファイルの変換設定
+  // TypeScript file transform settings
   transform: {
     "^.+\\.ts$": [
       "ts-jest",
@@ -26,13 +26,13 @@ export default {
     ],
   },
 
-  // カバレッジ設定
+  // Coverage settings
   collectCoverageFrom: [
     "src/**/*.ts",
-    "!src/index.ts", // メインファイルは除外（統合テストで別途テスト）
+    "!src/index.ts", // Excluded (covered separately by integration tests)
     "!**/*.d.ts",
   ],
 
-  // カバレッジレポートの形式
+  // Coverage report formats
   coverageReporters: ["text", "lcov", "html"],
 };

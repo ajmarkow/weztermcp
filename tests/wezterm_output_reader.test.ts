@@ -17,7 +17,7 @@ describe("WeztermOutputReader", () => {
   });
 
   describe("readOutput", () => {
-    it("指定された行数の出力を正常に読み取れること", async () => {
+    it("reads the specified number of lines of output successfully", async () => {
       const mockOutput = "line1\nline2\nline3\n";
       mockedExec.mockImplementation((command: string, callback: any) => {
         expect(command).toContain("get-text --escapes --start-line -50");
@@ -32,7 +32,7 @@ describe("WeztermOutputReader", () => {
       expect(result.content[0].text).toBe(mockOutput);
     });
 
-    it("デフォルトで50行を読み取ること", async () => {
+    it("reads 50 lines by default", async () => {
       const mockOutput = "default output";
       mockedExec.mockImplementation((command: string, callback: any) => {
         expect(command).toContain("--start-line -50");
@@ -46,7 +46,7 @@ describe("WeztermOutputReader", () => {
       expect(result.content[0].text).toBe(mockOutput);
     });
 
-    it("0以下の行数が指定された場合は全ての内容を取得すること", async () => {
+    it("fetches all content when 0 or fewer lines are specified", async () => {
       const mockOutput = "full screen content";
       mockedExec.mockImplementation((command: string, callback: any) => {
         expect(command).toContain("get-text --escapes");
@@ -61,7 +61,7 @@ describe("WeztermOutputReader", () => {
       expect(result.content[0].text).toBe(mockOutput);
     });
 
-    it("負の行数が指定された場合は全ての内容を取得すること", async () => {
+    it("fetches all content when a negative number of lines is specified", async () => {
       const mockOutput = "full screen content";
       mockedExec.mockImplementation((command: string, callback: any) => {
         expect(command).toContain("get-text --escapes");
@@ -76,7 +76,7 @@ describe("WeztermOutputReader", () => {
       expect(result.content[0].text).toBe(mockOutput);
     });
 
-    it('空の出力の場合は"(empty output)"を返すこと', async () => {
+    it('returns "(empty output)" for empty output', async () => {
       mockedExec.mockImplementation((command: string, callback: any) => {
         callback(null, { stdout: "", stderr: "" });
         return {} as any;
@@ -89,7 +89,7 @@ describe("WeztermOutputReader", () => {
       expect(result.content[0].text).toBe("(empty output)");
     });
 
-    it("エラーが発生した場合にエラーメッセージを返すこと", async () => {
+    it("returns an error message when an error occurs", async () => {
       mockedExec.mockImplementation((command: string, callback: any) => {
         callback(new Error("WezTerm connection failed"), null);
         return {} as any;
@@ -153,7 +153,7 @@ describe("WeztermOutputReader", () => {
   });
 
   describe("readCurrentScreen", () => {
-    it("現在の画面内容を正常に読み取れること", async () => {
+    it("reads the current screen content successfully", async () => {
       const mockScreenContent = "current screen content\nline 2\nline 3";
       mockedExec.mockImplementation((command: string, callback: any) => {
         expect(command).toContain("get-text --escapes");
@@ -169,7 +169,7 @@ describe("WeztermOutputReader", () => {
       expect(result.content[0].text).toBe(mockScreenContent);
     });
 
-    it('空の画面内容の場合は"(empty output)"を返すこと', async () => {
+    it('returns "(empty output)" for empty screen content', async () => {
       mockedExec.mockImplementation((command: string, callback: any) => {
         callback(null, { stdout: "", stderr: "" });
         return {} as any;
@@ -182,7 +182,7 @@ describe("WeztermOutputReader", () => {
       expect(result.content[0].text).toBe("(empty output)");
     });
 
-    it("エラーが発生した場合にエラーメッセージを返すこと", async () => {
+    it("returns an error message when an error occurs", async () => {
       mockedExec.mockImplementation((command: string, callback: any) => {
         callback(new Error("Screen read failed"), null);
         return {} as any;
