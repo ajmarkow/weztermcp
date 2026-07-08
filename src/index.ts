@@ -20,6 +20,7 @@ const server = new Server(
     },
     instructions:
       "wezterm_pane_write does not return command output — follow it with wezterm_pane_read to see results. " +
+      "For a long-running command, wezterm_pane_read is a snapshot, not a wait — call it again after some time to check progress rather than assuming one read captures the final output. " +
       "Call wezterm_pane_list first to discover valid pane_id values before targeting a pane with any other tool. " +
       "wezterm_pane_close is destructive and irreversible; confirm with the user before closing a pane.",
   }

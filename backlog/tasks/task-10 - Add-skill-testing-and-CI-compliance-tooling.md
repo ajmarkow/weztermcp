@@ -1,9 +1,10 @@
 ---
 id: TASK-10
 title: Add skill testing and CI compliance tooling
-status: To Do
+status: Done
 assignee: []
 created_date: '2026-07-07 21:02'
+updated_date: '2026-07-08 16:52'
 labels:
   - skill
   - ci
@@ -26,3 +27,9 @@ Guide 4.8/10: token budgets, trigger tests, and frontmatter linting.
 - [ ] #2 trigger_tests.yaml added with shouldTriggerPrompts and shouldNotTriggerPrompts
 - [ ] #3 CI step lints skill frontmatter compliance (>=150 chars, has WHEN:, <=60 words)
 <!-- AC:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Superseded along with task-8: no companion skill was built, so skill testing/CI compliance tooling (token budgets, trigger tests, frontmatter linting) doesn't apply. See task-9 (reworked).
+<!-- SECTION:NOTES:END -->
