@@ -2,12 +2,6 @@ import { execFileAsync } from "./exec_async.js";
 import { assertWeztermInstalled, notInstalledResult } from "./wezterm_check.js";
 
 export default class WeztermOutputReader {
-  private weztermBin: string;
-
-  constructor() {
-    this.weztermBin = "wezterm";
-  }
-
   async readOutput(lines: number = 50, paneId?: number): Promise<{ content: any[] }> {
     const err = await assertWeztermInstalled();
     if (err) return notInstalledResult();
@@ -20,7 +14,7 @@ export default class WeztermOutputReader {
         args.push("--pane-id", String(paneId));
       }
 
-      const { stdout } = await execFileAsync(this.weztermBin, args);
+      const { stdout } = await execFileAsync("wezterm", args);
 
       return {
         content: [
@@ -36,36 +30,6 @@ export default class WeztermOutputReader {
           {
             type: "text",
             text: `Failed to read terminal output: ${error.message}\nMake sure WezTerm is running and the mux server is enabled.\nTry running: wezterm cli list`,
-          },
-        ],
-      };
-    }
-  }
-
-  async readCurrentScreen(paneId?: number): Promise<{ content: any[] }> {
-    const err = await assertWeztermInstalled();
-    if (err) return notInstalledResult();
-    try {
-      const args = ["cli", "get-text", "--escapes"];
-      if (paneId !== undefined) {
-        args.push("--pane-id", String(paneId));
-      }
-      const { stdout } = await execFileAsync(this.weztermBin, args);
-
-      return {
-        content: [
-          {
-            type: "text",
-            text: stdout || "(empty output)",
-          },
-        ],
-      };
-    } catch (error: any) {
-      return {
-        content: [
-          {
-            type: "text",
-            text: `Failed to read current screen: ${error.message}`,
           },
         ],
       };

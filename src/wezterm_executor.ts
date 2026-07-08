@@ -9,19 +9,13 @@ interface WeztermPane {
 }
 
 export default class WeztermExecutor {
-  private weztermBin: string;
-
-  constructor() {
-    this.weztermBin = "wezterm";
-  }
-
   private async listAllPanes(): Promise<WeztermPane[]> {
-    const { stdout } = await execFileAsync(this.weztermBin, ["cli", "list", "--format", "json"]);
+    const { stdout } = await execFileAsync("wezterm", ["cli", "list", "--format", "json"]);
     return JSON.parse(stdout);
   }
 
   private async getFocusedPaneId(): Promise<number | undefined> {
-    const { stdout } = await execFileAsync(this.weztermBin, [
+    const { stdout } = await execFileAsync("wezterm", [
       "cli",
       "list-clients",
       "--format",
@@ -31,23 +25,27 @@ export default class WeztermExecutor {
     return clients[0]?.focused_pane_id;
   }
 
+  private async getFocusedPane(panes: WeztermPane[]): Promise<WeztermPane | undefined> {
+    const focusedPaneId = await this.getFocusedPaneId();
+    return panes.find((p) => p.pane_id === focusedPaneId);
+  }
+
   private async resolveTargetPaneId(
     windowId?: number,
     tabId?: number
   ): Promise<number | undefined> {
-    const focusedPaneId = await this.getFocusedPaneId();
     if (windowId === undefined && tabId === undefined) {
-      return focusedPaneId;
+      return this.getFocusedPaneId();
     }
 
     const panes = await this.listAllPanes();
-    const focusedPane = panes.find((p) => p.pane_id === focusedPaneId);
+    const focusedPane = await this.getFocusedPane(panes);
     const inScope = (p: WeztermPane) =>
       (windowId === undefined || p.window_id === windowId) &&
       (tabId === undefined || p.tab_id === tabId);
 
     if (focusedPane && inScope(focusedPane)) {
-      return focusedPaneId;
+      return focusedPane.pane_id;
     }
     return panes.find(inScope)?.pane_id;
   }
@@ -59,7 +57,7 @@ export default class WeztermExecutor {
     const err = await assertWeztermInstalled();
     if (err) return notInstalledResult();
     try {
-      await execFileAsync(this.weztermBin, [
+      await execFileAsync("wezterm", [
         "cli",
         "send-text",
         "--pane-id",
@@ -96,8 +94,7 @@ export default class WeztermExecutor {
       let scopedWindowId = windowId;
       let scopedTabId = tabId;
       if (scopedWindowId === undefined && scopedTabId === undefined) {
-        const focusedPaneId = await this.getFocusedPaneId();
-        const focusedPane = panes.find((p) => p.pane_id === focusedPaneId);
+        const focusedPane = await this.getFocusedPane(panes);
         if (focusedPane) {
           scopedWindowId = focusedPane.window_id;
           scopedTabId = focusedPane.tab_id;
@@ -136,7 +133,7 @@ export default class WeztermExecutor {
     const err = await assertWeztermInstalled();
     if (err) return notInstalledResult();
     try {
-      await execFileAsync(this.weztermBin, ["cli", "activate-pane", "--pane-id", String(paneId)]);
+      await execFileAsync("wezterm", ["cli", "activate-pane", "--pane-id", String(paneId)]);
       return {
         content: [
           {
@@ -161,7 +158,7 @@ export default class WeztermExecutor {
     const err = await assertWeztermInstalled();
     if (err) return notInstalledResult();
     try {
-      await execFileAsync(this.weztermBin, ["cli", "kill-pane", "--pane-id", String(paneId)]);
+      await execFileAsync("wezterm", ["cli", "kill-pane", "--pane-id", String(paneId)]);
       return {
         content: [{ type: "text", text: `Closed pane ${paneId}` }],
       };
@@ -196,7 +193,7 @@ export default class WeztermExecutor {
         };
       }
 
-      const { stdout } = await execFileAsync(this.weztermBin, [
+      const { stdout } = await execFileAsync("wezterm", [
         "cli",
         "split-pane",
         "--pane-id",
@@ -229,7 +226,7 @@ export default class WeztermExecutor {
     try {
       const args = ["cli", "spawn", "--new-window"];
       if (cwd) args.push("--cwd", cwd);
-      const { stdout } = await execFileAsync(this.weztermBin, args);
+      const { stdout } = await execFileAsync("wezterm", args);
       return {
         content: [
           {

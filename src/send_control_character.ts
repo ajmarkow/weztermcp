@@ -2,12 +2,6 @@ import { execFileAsync } from "./exec_async.js";
 import { assertWeztermInstalled, notInstalledResult } from "./wezterm_check.js";
 
 export default class SendControlCharacter {
-  private weztermBin: string;
-
-  constructor() {
-    this.weztermBin = "wezterm";
-  }
-
   async send(character: string, paneId?: number): Promise<{ content: any[] }> {
     const err = await assertWeztermInstalled();
     if (err) return notInstalledResult();
@@ -35,7 +29,7 @@ export default class SendControlCharacter {
       }
       args.push(controlSeq);
 
-      await execFileAsync(this.weztermBin, args);
+      await execFileAsync("wezterm", args);
 
       return {
         content: [
