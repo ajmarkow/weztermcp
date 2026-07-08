@@ -25,6 +25,10 @@ const server = new Server(
   }
 );
 
+const executor = new WeztermExecutor();
+const outputReader = new WeztermOutputReader();
+const controlCharSender = new SendControlCharacter();
+
 // Tool definitions
 server.setRequestHandler(ListToolsRequestSchema, async () => {
   return {
@@ -188,10 +192,6 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 
 // Tool execution
 server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
-  const executor = new WeztermExecutor();
-  const outputReader = new WeztermOutputReader();
-  const controlCharSender = new SendControlCharacter();
-
   switch (request.params.name) {
     case "wezterm_pane_write":
       return await executor.writeToTerminal(

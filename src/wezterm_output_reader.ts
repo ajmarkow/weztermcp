@@ -1,8 +1,5 @@
-import { exec } from "child_process";
-import { promisify } from "util";
+import { execAsync } from "./exec_async.js";
 import { assertWeztermInstalled, notInstalledResult } from "./wezterm_check.js";
-
-const execAsync = promisify(exec);
 
 export default class WeztermOutputReader {
   private weztermCli: string;

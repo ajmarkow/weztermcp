@@ -1,7 +1,4 @@
-import { exec } from "child_process";
-import { promisify } from "util";
-
-const execAsync = promisify(exec);
+import { execAsync } from "./exec_async.js";
 
 export const NOT_INSTALLED_MSG =
   "WezTerm is not installed or not on PATH. Install it from https://wezfurlong.org/wezterm/ and ensure 'wezterm' is accessible.";
