@@ -1,11 +1,11 @@
-import { exec } from "child_process";
+import { execFile } from "child_process";
 
 jest.mock("child_process");
 jest.mock("../src/wezterm_check", () => ({
   assertWeztermInstalled: jest.fn().mockResolvedValue(null),
   notInstalledResult: jest.fn(),
 }));
-const mockedExec = jest.mocked(exec);
+const mockedExecFile = jest.mocked(execFile);
 
 import WeztermExecutor from "../src/wezterm_executor";
 import WeztermOutputReader from "../src/wezterm_output_reader";
@@ -22,20 +22,20 @@ describe("Integration Tests", () => {
       const outputReader = new WeztermOutputReader();
       const controlCharSender = new SendControlCharacter();
 
-      // 1. Mock command execution (writeToTerminal calls exec twice: list and send-text)
+      // 1. Mock command execution (writeToTerminal calls execFile twice: list and send-text)
       let callCount = 0;
-      mockedExec.mockImplementation((command: string, callback: any) => {
+      mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
         callCount++;
-        if (command.includes("list-clients")) {
+        if (args.includes("list-clients")) {
           callback(null, { stdout: "[]", stderr: "" });
-        } else if (command.includes("list")) {
+        } else if (args.includes("list")) {
           callback(null, {
             stdout: JSON.stringify([{ window_id: 1, tab_id: 1, pane_id: 1, title: "Terminal" }]),
             stderr: "",
           });
-        } else if (command.includes("send-text")) {
+        } else if (args.includes("send-text")) {
           callback(null, { stdout: "", stderr: "" });
-        } else if (command.includes("get-text")) {
+        } else if (args.includes("get-text")) {
           // For output reading
           callback(null, { stdout: "hello\n", stderr: "" });
         } else {
@@ -64,7 +64,7 @@ describe("Integration Tests", () => {
       const outputReader = new WeztermOutputReader();
 
       // When an error occurs in every class
-      mockedExec.mockImplementation((command: string, callback: any) => {
+      mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
         callback(new Error("WezTerm not available"), null);
         return {} as any;
       });
@@ -94,7 +94,7 @@ describe("Integration Tests", () => {
       const executor = new WeztermExecutor();
 
       // Get pane list
-      mockedExec.mockImplementationOnce((command: string, callback: any) => {
+      mockedExecFile.mockImplementationOnce((file: string, args: any, callback: any) => {
         const paneList = JSON.stringify([
           { window_id: 1, tab_id: 1, pane_id: 1, title: "Terminal" },
           { window_id: 1, tab_id: 1, pane_id: 2, title: "Editor" },
@@ -102,7 +102,7 @@ describe("Integration Tests", () => {
         callback(null, { stdout: paneList, stderr: "" });
         return {} as any;
       });
-      mockedExec.mockImplementationOnce((command: string, callback: any) => {
+      mockedExecFile.mockImplementationOnce((file: string, args: any, callback: any) => {
         // no window_id/tab_id given, so listPanes then queries list-clients
         callback(null, { stdout: "[]", stderr: "" });
         return {} as any;
@@ -113,8 +113,8 @@ describe("Integration Tests", () => {
       expect(listResult.content[0].text).toContain("pane_id=2");
 
       // Switch pane
-      mockedExec.mockImplementationOnce((command: string, callback: any) => {
-        expect(command).toContain("activate-pane --pane-id 2");
+      mockedExecFile.mockImplementationOnce((file: string, args: any, callback: any) => {
+        expect(args).toEqual(["cli", "activate-pane", "--pane-id", "2"]);
         callback(null, { stdout: "", stderr: "" });
         return {} as any;
       });
@@ -123,9 +123,10 @@ describe("Integration Tests", () => {
       expect(switchResult.content[0].text).toBe("Switched to pane 2");
 
       // write to a specific pane using wezterm_pane_write
-      mockedExec.mockImplementationOnce((command: string, callback: any) => {
-        expect(command).toContain("--pane-id 2");
-        expect(command).toContain("ls");
+      mockedExecFile.mockImplementationOnce((file: string, args: any, callback: any) => {
+        expect(args).toContain("--pane-id");
+        expect(args).toContain("2");
+        expect(args).toContain("ls\n");
         callback(null, { stdout: "", stderr: "" });
         return {} as any;
       });
@@ -139,7 +140,7 @@ describe("Integration Tests", () => {
     it("a large number of command executions are handled properly", async () => {
       const executor = new WeztermExecutor();
 
-      mockedExec.mockImplementation((command: string, callback: any) => {
+      mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
         // Invoke callback immediately (no delay)
         callback(null, { stdout: "", stderr: "" });
         return {} as any;

@@ -1,5 +1,4 @@
-import { exec } from "child_process";
-import { promisify } from "util";
+import { execFile } from "child_process";
 import WeztermExecutor from "../src/wezterm_executor";
 
 jest.mock("child_process");
@@ -7,7 +6,7 @@ jest.mock("../src/wezterm_check", () => ({
   assertWeztermInstalled: jest.fn().mockResolvedValue(null),
   notInstalledResult: jest.fn(),
 }));
-const mockedExec = jest.mocked(exec);
+const mockedExecFile = jest.mocked(execFile);
 
 describe("WeztermExecutor", () => {
   let executor: WeztermExecutor;
@@ -19,9 +18,9 @@ describe("WeztermExecutor", () => {
 
   describe("writeToTerminal", () => {
     it("sends command to specified pane", async () => {
-      mockedExec.mockImplementation((command: string, callback: any) => {
-        expect(command).toContain("--pane-id 1");
-        expect(command).toContain("send-text");
+      mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
+        expect(file).toBe("wezterm");
+        expect(args).toEqual(["cli", "send-text", "--pane-id", "1", "--no-paste", 'echo "hello"\n']);
         callback(null, { stdout: "", stderr: "" });
         return {} as any;
       });
@@ -33,9 +32,9 @@ describe("WeztermExecutor", () => {
       expect(result.content[0].text).toBe('Command sent to pane 1: echo "hello"');
     });
 
-    it("escapes single quotes in command", async () => {
-      mockedExec.mockImplementation((command: string, callback: any) => {
-        expect(command).toContain("'\"'\"'");
+    it("passes commands containing quotes and spaces through untouched (no shell escaping needed)", async () => {
+      mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
+        expect(args).toContain("echo 'hello world'\n");
         callback(null, { stdout: "", stderr: "" });
         return {} as any;
       });
@@ -44,7 +43,7 @@ describe("WeztermExecutor", () => {
     });
 
     it("returns error message on failure", async () => {
-      mockedExec.mockImplementation((command: string, callback: any) => {
+      mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
         callback(new Error("WezTerm not running"), null);
         return {} as any;
       });
@@ -64,23 +63,22 @@ describe("WeztermExecutor", () => {
     ]);
 
     it("lists all panes in a given window_id/tab_id without querying the focused client", async () => {
-      mockedExec.mockImplementation((command: string, callback: any) => {
-        expect(command).toContain("wezterm cli list --format json");
-        expect(command).not.toContain("list-clients");
+      mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
+        expect(args).toEqual(["cli", "list", "--format", "json"]);
         callback(null, { stdout: allPanes, stderr: "" });
         return {} as any;
       });
 
       const result = await executor.listPanes(1, 2);
 
-      expect(mockedExec).toHaveBeenCalledTimes(1);
+      expect(mockedExecFile).toHaveBeenCalledTimes(1);
       expect(result.content[0].text).toContain("pane_id=2");
       expect(result.content[0].text).not.toContain("pane_id=1 ");
       expect(result.content[0].text).not.toContain("pane_id=3");
     });
 
     it("scopes by window_id only when tab_id is omitted", async () => {
-      mockedExec.mockImplementation((command: string, callback: any) => {
+      mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
         callback(null, { stdout: allPanes, stderr: "" });
         return {} as any;
       });
@@ -93,14 +91,14 @@ describe("WeztermExecutor", () => {
     });
 
     it("falls back to the active focused window/tab when no ids are given", async () => {
-      mockedExec.mockImplementation((command: string, callback: any) => {
-        if (command.includes("list-clients")) {
+      mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
+        if (args.includes("list-clients")) {
           callback(null, {
             stdout: JSON.stringify([{ focused_pane_id: 2 }]),
             stderr: "",
           });
         } else {
-          expect(command).toContain("wezterm cli list --format json");
+          expect(args).toEqual(["cli", "list", "--format", "json"]);
           callback(null, { stdout: allPanes, stderr: "" });
         }
         return {} as any;
@@ -108,15 +106,15 @@ describe("WeztermExecutor", () => {
 
       const result = await executor.listPanes();
 
-      expect(mockedExec).toHaveBeenCalledTimes(2);
+      expect(mockedExecFile).toHaveBeenCalledTimes(2);
       expect(result.content[0].text).toContain("pane_id=2");
       expect(result.content[0].text).not.toContain("pane_id=1 ");
       expect(result.content[0].text).not.toContain("pane_id=3");
     });
 
     it("returns all panes if no client is focused and no ids are given", async () => {
-      mockedExec.mockImplementation((command: string, callback: any) => {
-        if (command.includes("list-clients")) {
+      mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
+        if (args.includes("list-clients")) {
           callback(null, { stdout: "[]", stderr: "" });
         } else {
           callback(null, { stdout: allPanes, stderr: "" });
@@ -132,7 +130,7 @@ describe("WeztermExecutor", () => {
     });
 
     it("returns a friendly message when the scope matches no panes", async () => {
-      mockedExec.mockImplementation((command: string, callback: any) => {
+      mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
         callback(null, { stdout: allPanes, stderr: "" });
         return {} as any;
       });
@@ -143,7 +141,7 @@ describe("WeztermExecutor", () => {
     });
 
     it("returns an error message when listing panes fails", async () => {
-      mockedExec.mockImplementation((command: string, callback: any) => {
+      mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
         callback(new Error("Connection failed"), null);
         return {} as any; // Mock ChildProcess
       });
@@ -159,8 +157,8 @@ describe("WeztermExecutor", () => {
 
   describe("closePane", () => {
     it("closes the specified pane", async () => {
-      mockedExec.mockImplementation((command: string, callback: any) => {
-        expect(command).toContain("kill-pane --pane-id 7");
+      mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
+        expect(args).toEqual(["cli", "kill-pane", "--pane-id", "7"]);
         callback(null, { stdout: "", stderr: "" });
         return {} as any;
       });
@@ -173,7 +171,7 @@ describe("WeztermExecutor", () => {
     });
 
     it("returns error message on failure", async () => {
-      mockedExec.mockImplementation((command: string, callback: any) => {
+      mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
         callback(new Error("Pane not found"), null);
         return {} as any;
       });
@@ -187,8 +185,8 @@ describe("WeztermExecutor", () => {
 
   describe("splitPane", () => {
     it("splits the pane in the specified direction", async () => {
-      mockedExec.mockImplementation((command: string, callback: any) => {
-        expect(command).toContain("split-pane --pane-id 5 --right");
+      mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
+        expect(args).toEqual(["cli", "split-pane", "--pane-id", "5", "--right"]);
         callback(null, { stdout: "6\n", stderr: "" });
         return {} as any;
       });
@@ -202,8 +200,8 @@ describe("WeztermExecutor", () => {
     });
 
     it("maps direction to lowercase CLI flag", async () => {
-      mockedExec.mockImplementation((command: string, callback: any) => {
-        expect(command).toContain("--bottom");
+      mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
+        expect(args).toContain("--bottom");
         callback(null, { stdout: "8\n", stderr: "" });
         return {} as any;
       });
@@ -212,7 +210,7 @@ describe("WeztermExecutor", () => {
     });
 
     it("returns error message on failure", async () => {
-      mockedExec.mockImplementation((command: string, callback: any) => {
+      mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
         callback(new Error("Split failed"), null);
         return {} as any;
       });
@@ -224,14 +222,14 @@ describe("WeztermExecutor", () => {
     });
 
     it("resolves the focused pane when pane_id is omitted", async () => {
-      mockedExec.mockImplementation((command: string, callback: any) => {
-        if (command.includes("list-clients")) {
+      mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
+        if (args.includes("list-clients")) {
           callback(null, {
             stdout: JSON.stringify([{ focused_pane_id: 4 }]),
             stderr: "",
           });
-        } else if (command.includes("split-pane")) {
-          expect(command).toContain("--pane-id 4");
+        } else if (args.includes("split-pane")) {
+          expect(args).toContain("4");
           callback(null, { stdout: "9\n", stderr: "" });
         }
         return {} as any;
@@ -248,15 +246,15 @@ describe("WeztermExecutor", () => {
         { window_id: 2, tab_id: 2, pane_id: 2 },
       ]);
 
-      mockedExec.mockImplementation((command: string, callback: any) => {
-        if (command.includes("list-clients")) {
+      mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
+        if (args.includes("list-clients")) {
           // focused pane (1) is outside the requested scope (window_id 2)
           callback(null, {
             stdout: JSON.stringify([{ focused_pane_id: 1 }]),
             stderr: "",
           });
-        } else if (command.includes("split-pane")) {
-          expect(command).toContain("--pane-id 2");
+        } else if (args.includes("split-pane")) {
+          expect(args).toContain("2");
           callback(null, { stdout: "10\n", stderr: "" });
         } else {
           callback(null, { stdout: panes, stderr: "" });
@@ -270,8 +268,8 @@ describe("WeztermExecutor", () => {
     });
 
     it("returns a friendly error when no pane can be resolved", async () => {
-      mockedExec.mockImplementation((command: string, callback: any) => {
-        if (command.includes("list-clients")) {
+      mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
+        if (args.includes("list-clients")) {
           callback(null, { stdout: "[]", stderr: "" });
         } else {
           callback(null, { stdout: "[]", stderr: "" });
@@ -288,8 +286,8 @@ describe("WeztermExecutor", () => {
 
   describe("switchPane", () => {
     it("switches to the specified pane", async () => {
-      mockedExec.mockImplementation((command: string, callback: any) => {
-        expect(command).toContain("activate-pane --pane-id 42");
+      mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
+        expect(args).toEqual(["cli", "activate-pane", "--pane-id", "42"]);
         callback(null, { stdout: "", stderr: "" });
         return {} as any; // Mock ChildProcess
       });
@@ -302,7 +300,7 @@ describe("WeztermExecutor", () => {
     });
 
     it("returns an error message when trying to switch to a nonexistent pane", async () => {
-      mockedExec.mockImplementation((command: string, callback: any) => {
+      mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
         callback(new Error("Pane does not exist"), null);
         return {} as any; // Mock ChildProcess
       });
@@ -319,8 +317,8 @@ describe("WeztermExecutor", () => {
 
   describe("spawnWindow", () => {
     it("spawns a new window and returns the new pane id", async () => {
-      mockedExec.mockImplementation((command: string, callback: any) => {
-        expect(command).toContain("spawn --new-window");
+      mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
+        expect(args).toEqual(["cli", "spawn", "--new-window"]);
         callback(null, { stdout: "7\n", stderr: "" });
         return {} as any;
       });
@@ -332,9 +330,9 @@ describe("WeztermExecutor", () => {
       expect(result.content[0].text).toBe("Spawned new window. New pane id: 7");
     });
 
-    it("passes cwd flag when provided", async () => {
-      mockedExec.mockImplementation((command: string, callback: any) => {
-        expect(command).toContain("--cwd '/tmp/foo'");
+    it("passes cwd flag when provided, without any shell quoting", async () => {
+      mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
+        expect(args).toEqual(["cli", "spawn", "--new-window", "--cwd", "/tmp/foo"]);
         callback(null, { stdout: "8\n", stderr: "" });
         return {} as any;
       });
@@ -343,7 +341,7 @@ describe("WeztermExecutor", () => {
     });
 
     it("returns error message on failure", async () => {
-      mockedExec.mockImplementation((command: string, callback: any) => {
+      mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
         callback(new Error("WezTerm not running"), null);
         return {} as any;
       });

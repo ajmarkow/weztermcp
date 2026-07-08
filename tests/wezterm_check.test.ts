@@ -1,14 +1,16 @@
-import { exec } from "child_process";
+import { execFile } from "child_process";
 import { assertWeztermInstalled, notInstalledResult, NOT_INSTALLED_MSG } from "../src/wezterm_check";
 
 jest.mock("child_process");
-const mockedExec = jest.mocked(exec);
+const mockedExecFile = jest.mocked(execFile);
 
 describe("assertWeztermInstalled", () => {
   beforeEach(() => jest.clearAllMocks());
 
   it("returns null when wezterm --version succeeds", async () => {
-    mockedExec.mockImplementation((command: string, callback: any) => {
+    mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
+      expect(file).toBe("wezterm");
+      expect(args).toEqual(["--version"]);
       callback(null, { stdout: "WezTerm 20240203-110809-5046fc22", stderr: "" });
       return {} as any;
     });
@@ -18,7 +20,7 @@ describe("assertWeztermInstalled", () => {
   });
 
   it("returns error message when wezterm is not found", async () => {
-    mockedExec.mockImplementation((command: string, callback: any) => {
+    mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
       callback(new Error("command not found: wezterm"), null);
       return {} as any;
     });
@@ -28,7 +30,7 @@ describe("assertWeztermInstalled", () => {
   });
 
   it("returns error message when version output is empty", async () => {
-    mockedExec.mockImplementation((command: string, callback: any) => {
+    mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
       callback(null, { stdout: "", stderr: "" });
       return {} as any;
     });

@@ -1,11 +1,11 @@
-import { execAsync } from "./exec_async.js";
+import { execFileAsync } from "./exec_async.js";
 
 export const NOT_INSTALLED_MSG =
   "WezTerm is not installed or not on PATH. Install it from https://wezfurlong.org/wezterm/ and ensure 'wezterm' is accessible.";
 
 export async function assertWeztermInstalled(): Promise<string | null> {
   try {
-    const { stdout } = await execAsync("wezterm --version");
+    const { stdout } = await execFileAsync("wezterm", ["--version"]);
     if (!stdout.trim()) {
       return NOT_INSTALLED_MSG;
     }

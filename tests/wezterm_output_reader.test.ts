@@ -1,4 +1,4 @@
-import { exec } from "child_process";
+import { execFile } from "child_process";
 import WeztermOutputReader from "../src/wezterm_output_reader";
 
 jest.mock("child_process");
@@ -6,7 +6,7 @@ jest.mock("../src/wezterm_check", () => ({
   assertWeztermInstalled: jest.fn().mockResolvedValue(null),
   notInstalledResult: jest.fn(),
 }));
-const mockedExec = jest.mocked(exec);
+const mockedExecFile = jest.mocked(execFile);
 
 describe("WeztermOutputReader", () => {
   let outputReader: WeztermOutputReader;
@@ -19,8 +19,9 @@ describe("WeztermOutputReader", () => {
   describe("readOutput", () => {
     it("reads the specified number of lines of output successfully", async () => {
       const mockOutput = "line1\nline2\nline3\n";
-      mockedExec.mockImplementation((command: string, callback: any) => {
-        expect(command).toContain("get-text --escapes --start-line -50");
+      mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
+        expect(file).toBe("wezterm");
+        expect(args).toEqual(["cli", "get-text", "--escapes", "--start-line", "-50"]);
         callback(null, { stdout: mockOutput, stderr: "" });
         return {} as any;
       });
@@ -34,8 +35,8 @@ describe("WeztermOutputReader", () => {
 
     it("reads 50 lines by default", async () => {
       const mockOutput = "default output";
-      mockedExec.mockImplementation((command: string, callback: any) => {
-        expect(command).toContain("--start-line -50");
+      mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
+        expect(args).toEqual(["cli", "get-text", "--escapes", "--start-line", "-50"]);
         callback(null, { stdout: mockOutput, stderr: "" });
         return {} as any;
       });
@@ -48,9 +49,8 @@ describe("WeztermOutputReader", () => {
 
     it("fetches all content when 0 or fewer lines are specified", async () => {
       const mockOutput = "full screen content";
-      mockedExec.mockImplementation((command: string, callback: any) => {
-        expect(command).toContain("get-text --escapes");
-        expect(command).not.toContain("--start-line");
+      mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
+        expect(args).toEqual(["cli", "get-text", "--escapes"]);
         callback(null, { stdout: mockOutput, stderr: "" });
         return {} as any;
       });
@@ -63,9 +63,8 @@ describe("WeztermOutputReader", () => {
 
     it("fetches all content when a negative number of lines is specified", async () => {
       const mockOutput = "full screen content";
-      mockedExec.mockImplementation((command: string, callback: any) => {
-        expect(command).toContain("get-text --escapes");
-        expect(command).not.toContain("--start-line");
+      mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
+        expect(args).toEqual(["cli", "get-text", "--escapes"]);
         callback(null, { stdout: mockOutput, stderr: "" });
         return {} as any;
       });
@@ -77,7 +76,7 @@ describe("WeztermOutputReader", () => {
     });
 
     it('returns "(empty output)" for empty output', async () => {
-      mockedExec.mockImplementation((command: string, callback: any) => {
+      mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
         callback(null, { stdout: "", stderr: "" });
         return {} as any;
       });
@@ -90,7 +89,7 @@ describe("WeztermOutputReader", () => {
     });
 
     it("returns an error message when an error occurs", async () => {
-      mockedExec.mockImplementation((command: string, callback: any) => {
+      mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
         callback(new Error("WezTerm connection failed"), null);
         return {} as any;
       });
@@ -108,8 +107,16 @@ describe("WeztermOutputReader", () => {
 
     it("should read output from specific pane when pane_id is provided", async () => {
       const mockOutput = "pane specific output";
-      mockedExec.mockImplementation((command: string, callback: any) => {
-        expect(command).toContain("get-text --escapes --start-line -30 --pane-id 123");
+      mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
+        expect(args).toEqual([
+          "cli",
+          "get-text",
+          "--escapes",
+          "--start-line",
+          "-30",
+          "--pane-id",
+          "123",
+        ]);
         callback(null, { stdout: mockOutput, stderr: "" });
         return {} as any;
       });
@@ -123,9 +130,9 @@ describe("WeztermOutputReader", () => {
 
     it("should not include --pane-id option when pane_id is not provided", async () => {
       const mockOutput = "default pane output";
-      mockedExec.mockImplementation((command: string, callback: any) => {
-        expect(command).toContain("get-text --escapes --start-line -25");
-        expect(command).not.toContain("--pane-id");
+      mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
+        expect(args).toEqual(["cli", "get-text", "--escapes", "--start-line", "-25"]);
+        expect(args).not.toContain("--pane-id");
         callback(null, { stdout: mockOutput, stderr: "" });
         return {} as any;
       });
@@ -138,9 +145,9 @@ describe("WeztermOutputReader", () => {
 
     it("should include --pane-id option and exclude --start-line when pane_id is provided with 0 or negative lines", async () => {
       const mockOutput = "full screen from specific pane";
-      mockedExec.mockImplementation((command: string, callback: any) => {
-        expect(command).toContain("get-text --escapes --pane-id 456");
-        expect(command).not.toContain("--start-line");
+      mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
+        expect(args).toEqual(["cli", "get-text", "--escapes", "--pane-id", "456"]);
+        expect(args).not.toContain("--start-line");
         callback(null, { stdout: mockOutput, stderr: "" });
         return {} as any;
       });
@@ -155,9 +162,8 @@ describe("WeztermOutputReader", () => {
   describe("readCurrentScreen", () => {
     it("reads the current screen content successfully", async () => {
       const mockScreenContent = "current screen content\nline 2\nline 3";
-      mockedExec.mockImplementation((command: string, callback: any) => {
-        expect(command).toContain("get-text --escapes");
-        expect(command).not.toContain("--start-line");
+      mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
+        expect(args).toEqual(["cli", "get-text", "--escapes"]);
         callback(null, { stdout: mockScreenContent, stderr: "" });
         return {} as any;
       });
@@ -170,7 +176,7 @@ describe("WeztermOutputReader", () => {
     });
 
     it('returns "(empty output)" for empty screen content', async () => {
-      mockedExec.mockImplementation((command: string, callback: any) => {
+      mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
         callback(null, { stdout: "", stderr: "" });
         return {} as any;
       });
@@ -183,7 +189,7 @@ describe("WeztermOutputReader", () => {
     });
 
     it("returns an error message when an error occurs", async () => {
-      mockedExec.mockImplementation((command: string, callback: any) => {
+      mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
         callback(new Error("Screen read failed"), null);
         return {} as any;
       });
@@ -198,9 +204,8 @@ describe("WeztermOutputReader", () => {
 
     it("should read current screen from specific pane when pane_id is provided", async () => {
       const mockScreenContent = "specific pane screen content";
-      mockedExec.mockImplementation((command: string, callback: any) => {
-        expect(command).toContain("get-text --escapes --pane-id 789");
-        expect(command).not.toContain("--start-line");
+      mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
+        expect(args).toEqual(["cli", "get-text", "--escapes", "--pane-id", "789"]);
         callback(null, { stdout: mockScreenContent, stderr: "" });
         return {} as any;
       });
@@ -214,10 +219,8 @@ describe("WeztermOutputReader", () => {
 
     it("should not include --pane-id option in readCurrentScreen when pane_id is not provided", async () => {
       const mockScreenContent = "default pane screen content";
-      mockedExec.mockImplementation((command: string, callback: any) => {
-        expect(command).toContain("get-text --escapes");
-        expect(command).not.toContain("--pane-id");
-        expect(command).not.toContain("--start-line");
+      mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
+        expect(args).toEqual(["cli", "get-text", "--escapes"]);
         callback(null, { stdout: mockScreenContent, stderr: "" });
         return {} as any;
       });

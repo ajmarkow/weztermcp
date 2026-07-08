@@ -1,28 +1,26 @@
-import { execAsync } from "./exec_async.js";
+import { execFileAsync } from "./exec_async.js";
 import { assertWeztermInstalled, notInstalledResult } from "./wezterm_check.js";
 
 export default class WeztermOutputReader {
-  private weztermCli: string;
+  private weztermBin: string;
 
   constructor() {
-    this.weztermCli = "wezterm cli";
+    this.weztermBin = "wezterm";
   }
 
   async readOutput(lines: number = 50, paneId?: number): Promise<{ content: any[] }> {
     const err = await assertWeztermInstalled();
     if (err) return notInstalledResult();
     try {
-      let command: string;
-      const paneOption = paneId !== undefined ? ` --pane-id ${paneId}` : '';
-
-      if (lines <= 0) {
-        command = `${this.weztermCli} get-text --escapes${paneOption}`;
-      } else {
-        const startLine = -lines;
-        command = `${this.weztermCli} get-text --escapes --start-line ${startLine}${paneOption}`;
+      const args = ["cli", "get-text", "--escapes"];
+      if (lines > 0) {
+        args.push("--start-line", String(-lines));
+      }
+      if (paneId !== undefined) {
+        args.push("--pane-id", String(paneId));
       }
 
-      const { stdout } = await execAsync(command);
+      const { stdout } = await execFileAsync(this.weztermBin, args);
 
       return {
         content: [
@@ -48,10 +46,11 @@ export default class WeztermOutputReader {
     const err = await assertWeztermInstalled();
     if (err) return notInstalledResult();
     try {
-      const paneOption = paneId !== undefined ? ` --pane-id ${paneId}` : '';
-      const { stdout } = await execAsync(
-        `${this.weztermCli} get-text --escapes${paneOption}`
-      );
+      const args = ["cli", "get-text", "--escapes"];
+      if (paneId !== undefined) {
+        args.push("--pane-id", String(paneId));
+      }
+      const { stdout } = await execFileAsync(this.weztermBin, args);
 
       return {
         content: [

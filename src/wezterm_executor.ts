@@ -1,4 +1,4 @@
-import { execAsync } from "./exec_async.js";
+import { execFileAsync } from "./exec_async.js";
 import { assertWeztermInstalled, notInstalledResult } from "./wezterm_check.js";
 
 interface WeztermPane {
@@ -9,19 +9,24 @@ interface WeztermPane {
 }
 
 export default class WeztermExecutor {
-  private weztermCli: string;
+  private weztermBin: string;
 
   constructor() {
-    this.weztermCli = "wezterm cli";
+    this.weztermBin = "wezterm";
   }
 
   private async listAllPanes(): Promise<WeztermPane[]> {
-    const { stdout } = await execAsync(`${this.weztermCli} list --format json`);
+    const { stdout } = await execFileAsync(this.weztermBin, ["cli", "list", "--format", "json"]);
     return JSON.parse(stdout);
   }
 
   private async getFocusedPaneId(): Promise<number | undefined> {
-    const { stdout } = await execAsync(`${this.weztermCli} list-clients --format json`);
+    const { stdout } = await execFileAsync(this.weztermBin, [
+      "cli",
+      "list-clients",
+      "--format",
+      "json",
+    ]);
     const clients = JSON.parse(stdout);
     return clients[0]?.focused_pane_id;
   }
@@ -54,10 +59,14 @@ export default class WeztermExecutor {
     const err = await assertWeztermInstalled();
     if (err) return notInstalledResult();
     try {
-      const escapedCommand = command.replace(/'/g, "'\"'\"'");
-      await execAsync(
-        `${this.weztermCli} send-text --pane-id ${paneId} --no-paste '${escapedCommand}\n'`
-      );
+      await execFileAsync(this.weztermBin, [
+        "cli",
+        "send-text",
+        "--pane-id",
+        String(paneId),
+        "--no-paste",
+        `${command}\n`,
+      ]);
       return {
         content: [
           {
@@ -127,7 +136,7 @@ export default class WeztermExecutor {
     const err = await assertWeztermInstalled();
     if (err) return notInstalledResult();
     try {
-      await execAsync(`${this.weztermCli} activate-pane --pane-id ${paneId}`);
+      await execFileAsync(this.weztermBin, ["cli", "activate-pane", "--pane-id", String(paneId)]);
       return {
         content: [
           {
@@ -152,7 +161,7 @@ export default class WeztermExecutor {
     const err = await assertWeztermInstalled();
     if (err) return notInstalledResult();
     try {
-      await execAsync(`${this.weztermCli} kill-pane --pane-id ${paneId}`);
+      await execFileAsync(this.weztermBin, ["cli", "kill-pane", "--pane-id", String(paneId)]);
       return {
         content: [{ type: "text", text: `Closed pane ${paneId}` }],
       };
@@ -187,9 +196,13 @@ export default class WeztermExecutor {
         };
       }
 
-      const { stdout } = await execAsync(
-        `${this.weztermCli} split-pane --pane-id ${targetPaneId} ${dirFlag}`
-      );
+      const { stdout } = await execFileAsync(this.weztermBin, [
+        "cli",
+        "split-pane",
+        "--pane-id",
+        String(targetPaneId),
+        dirFlag,
+      ]);
       return {
         content: [
           {
@@ -214,10 +227,9 @@ export default class WeztermExecutor {
     const err = await assertWeztermInstalled();
     if (err) return notInstalledResult();
     try {
-      const cwdFlag = cwd ? ` --cwd '${cwd.replace(/'/g, "'\"'\"'")}'` : "";
-      const { stdout } = await execAsync(
-        `${this.weztermCli} spawn --new-window${cwdFlag}`
-      );
+      const args = ["cli", "spawn", "--new-window"];
+      if (cwd) args.push("--cwd", cwd);
+      const { stdout } = await execFileAsync(this.weztermBin, args);
       return {
         content: [
           {

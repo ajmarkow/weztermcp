@@ -1,4 +1,4 @@
-import { exec } from "child_process";
+import { execFile } from "child_process";
 import SendControlCharacter from "../src/send_control_character";
 
 jest.mock("child_process");
@@ -6,7 +6,7 @@ jest.mock("../src/wezterm_check", () => ({
   assertWeztermInstalled: jest.fn().mockResolvedValue(null),
   notInstalledResult: jest.fn(),
 }));
-const mockedExec = jest.mocked(exec);
+const mockedExecFile = jest.mocked(execFile);
 
 describe("SendControlCharacter", () => {
   let controlCharSender: SendControlCharacter;
@@ -18,8 +18,9 @@ describe("SendControlCharacter", () => {
 
   describe("send", () => {
     it("sends Ctrl+C successfully", async () => {
-      mockedExec.mockImplementation((command: string, callback: any) => {
-        expect(command).toContain("send-text $'\\x03'");
+      mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
+        expect(file).toBe("wezterm");
+        expect(args).toEqual(["cli", "send-text", "\x03"]);
         callback(null, { stdout: "", stderr: "" });
         return {} as any;
       });
@@ -32,9 +33,8 @@ describe("SendControlCharacter", () => {
     });
 
     it("adds the --pane-id flag when pane_id is specified", async () => {
-      mockedExec.mockImplementation((command: string, callback: any) => {
-        expect(command).toContain("--pane-id 42");
-        expect(command).toContain("send-text");
+      mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
+        expect(args).toEqual(["cli", "send-text", "--pane-id", "42", "\x03"]);
         callback(null, { stdout: "", stderr: "" });
         return {} as any;
       });
@@ -45,8 +45,8 @@ describe("SendControlCharacter", () => {
     });
 
     it("sends Ctrl+D successfully", async () => {
-      mockedExec.mockImplementation((command: string, callback: any) => {
-        expect(command).toContain("send-text $'\\x04'");
+      mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
+        expect(args).toEqual(["cli", "send-text", "\x04"]);
         callback(null, { stdout: "", stderr: "" });
         return {} as any;
       });
@@ -59,8 +59,8 @@ describe("SendControlCharacter", () => {
     });
 
     it("sends Ctrl+Z successfully", async () => {
-      mockedExec.mockImplementation((command: string, callback: any) => {
-        expect(command).toContain("send-text $'\\x1a'");
+      mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
+        expect(args).toEqual(["cli", "send-text", "\x1a"]);
         callback(null, { stdout: "", stderr: "" });
         return {} as any;
       });
@@ -73,8 +73,8 @@ describe("SendControlCharacter", () => {
     });
 
     it("sends Ctrl+L successfully", async () => {
-      mockedExec.mockImplementation((command: string, callback: any) => {
-        expect(command).toContain("send-text $'\\x0c'");
+      mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
+        expect(args).toEqual(["cli", "send-text", "\x0c"]);
         callback(null, { stdout: "", stderr: "" });
         return {} as any;
       });
@@ -87,8 +87,8 @@ describe("SendControlCharacter", () => {
     });
 
     it("works correctly with uppercase characters", async () => {
-      mockedExec.mockImplementation((command: string, callback: any) => {
-        expect(command).toContain("send-text $'\\x03'");
+      mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
+        expect(args).toEqual(["cli", "send-text", "\x03"]);
         callback(null, { stdout: "", stderr: "" });
         return {} as any;
       });
@@ -113,7 +113,7 @@ describe("SendControlCharacter", () => {
     });
 
     it("throws an error when the WezTerm command execution fails", async () => {
-      mockedExec.mockImplementation((command: string, callback: any) => {
+      mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
         callback(new Error("WezTerm not available"), null);
         return {} as any;
       });
@@ -125,17 +125,17 @@ describe("SendControlCharacter", () => {
 
     // Test all control character mappings
     const controlCharTests = [
-      { char: "a", sequence: "\\x01", name: "Ctrl+A" },
-      { char: "e", sequence: "\\x05", name: "Ctrl+E" },
-      { char: "k", sequence: "\\x0b", name: "Ctrl+K" },
-      { char: "u", sequence: "\\x15", name: "Ctrl+U" },
-      { char: "w", sequence: "\\x17", name: "Ctrl+W" },
+      { char: "a", sequence: "\x01", name: "Ctrl+A" },
+      { char: "e", sequence: "\x05", name: "Ctrl+E" },
+      { char: "k", sequence: "\x0b", name: "Ctrl+K" },
+      { char: "u", sequence: "\x15", name: "Ctrl+U" },
+      { char: "w", sequence: "\x17", name: "Ctrl+W" },
     ];
 
     controlCharTests.forEach(({ char, sequence, name }) => {
       it(`sends ${name} successfully`, async () => {
-        mockedExec.mockImplementation((command: string, callback: any) => {
-          expect(command).toContain(`send-text $'${sequence}'`);
+        mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
+          expect(args).toEqual(["cli", "send-text", sequence]);
           callback(null, { stdout: "", stderr: "" });
           return {} as any;
         });

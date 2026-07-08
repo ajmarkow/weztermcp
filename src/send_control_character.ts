@@ -1,11 +1,11 @@
-import { execAsync } from "./exec_async.js";
+import { execFileAsync } from "./exec_async.js";
 import { assertWeztermInstalled, notInstalledResult } from "./wezterm_check.js";
 
 export default class SendControlCharacter {
-  private weztermCli: string;
+  private weztermBin: string;
 
   constructor() {
-    this.weztermCli = "wezterm cli";
+    this.weztermBin = "wezterm";
   }
 
   async send(character: string, paneId?: number): Promise<{ content: any[] }> {
@@ -13,15 +13,15 @@ export default class SendControlCharacter {
     if (err) return notInstalledResult();
     try {
       const controlMap: { [key: string]: string } = {
-        c: "\\x03", // Ctrl+C
-        d: "\\x04", // Ctrl+D
-        z: "\\x1a", // Ctrl+Z
-        l: "\\x0c", // Ctrl+L
-        a: "\\x01", // Ctrl+A
-        e: "\\x05", // Ctrl+E
-        k: "\\x0b", // Ctrl+K
-        u: "\\x15", // Ctrl+U
-        w: "\\x17", // Ctrl+W
+        c: "\x03", // Ctrl+C
+        d: "\x04", // Ctrl+D
+        z: "\x1a", // Ctrl+Z
+        l: "\x0c", // Ctrl+L
+        a: "\x01", // Ctrl+A
+        e: "\x05", // Ctrl+E
+        k: "\x0b", // Ctrl+K
+        u: "\x15", // Ctrl+U
+        w: "\x17", // Ctrl+W
       };
 
       const controlSeq = controlMap[character.toLowerCase()];
@@ -29,8 +29,13 @@ export default class SendControlCharacter {
         throw new Error(`Unknown control character: ${character}`);
       }
 
-      const paneFlag = paneId !== undefined ? ` --pane-id ${paneId}` : "";
-      await execAsync(`${this.weztermCli} send-text${paneFlag} $'${controlSeq}'`);
+      const args = ["cli", "send-text"];
+      if (paneId !== undefined) {
+        args.push("--pane-id", String(paneId));
+      }
+      args.push(controlSeq);
+
+      await execFileAsync(this.weztermBin, args);
 
       return {
         content: [
