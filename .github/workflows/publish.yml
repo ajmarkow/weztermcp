@@ -51,3 +51,42 @@ jobs:
       - name: Publish
         if: steps.version-check.outputs.published == 'false'
         run: npm publish --provenance
+
+  publish-github-packages:
+    needs: test
+    if: github.actor == 'ajmarkow'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          registry-url: "https://npm.pkg.github.com"
+          scope: "@ajmarkow"
+          package-manager-cache: false
+
+      - run: npm ci
+
+      - name: Check if version is already published
+        id: version-check
+        run: |
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          if npm view "@ajmarkow/weztermcp@${PKG_VERSION}" version > /dev/null 2>&1; then
+            echo "published=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "published=false" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish to GitHub Packages
+        if: steps.version-check.outputs.published == 'false'
+        run: |
+          npm pkg set name="@ajmarkow/weztermcp"
+          npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
