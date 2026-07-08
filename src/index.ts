@@ -187,7 +187,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         },
       },
       {
-        name: "wezterm_spawn_window",
+        name: "wezterm_window_spawn",
         title: "Spawn WezTerm Window",
         description:
           "EXECUTION TOOL. Opens a brand new WezTerm window with a fresh shell, using `wezterm cli spawn --new-window`. WHEN: 'open a new window', 'spawn a window', 'create a separate WezTerm window'. Panes are the primary entity for most work — prefer wezterm_pane_split for a new pane within the current window/tab. Use this only when a genuinely separate top-level window is needed. Returns the new pane's ID (the initial pane of the new window) — store it to target subsequent commands. Example: spawn a new window, then wezterm_pane_write to the returned pane ID.",
@@ -246,7 +246,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
         request.params.arguments.tab_id
       );
 
-    case "wezterm_spawn_window":
+    case "wezterm_window_spawn":
       return await executor.spawnWindow(request.params.arguments?.cwd);
 
     default:
