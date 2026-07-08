@@ -16,14 +16,24 @@ It allows you to control WezTerm from Claude Desktop and other MCP clients.
 | `wezterm_pane_switch` | `pane_id: number` | — | Switches focus to the specified pane |
 | `wezterm_pane_close` | `pane_id: number` | — | Closes the specified pane |
 | `wezterm_pane_split` | `direction: "Right"\|"Left"\|"Top"\|"Bottom"` | `pane_id: number`, `window_id: number`, `tab_id: number` | Splits a pane and returns the new pane ID |
+| `wezterm_pane_split_and_write` | `command: string`, `direction: "Right"\|"Left"\|"Top"\|"Bottom"` | `pane_id: number`, `window_id: number`, `tab_id: number` | Splits a pane and writes a command to the new pane in one call |
+| `wezterm_window_spawn` | — | `cwd: string` | Opens a new top-level WezTerm window and returns its initial pane ID |
 
 ## Multi-window and multi-tab support
 
 `pane_id` is globally unique across all of WezTerm's windows and tabs, so most tools (`wezterm_pane_write`, `wezterm_pane_read`, `wezterm_pane_send_key`, `wezterm_pane_switch`, `wezterm_pane_close`) don't need window/tab scoping — they just target the pane directly.
 
-`wezterm_pane_list` and `wezterm_pane_split` are the exceptions, since they need to know *which* window/tab to operate on when a specific pane isn't given:
+`wezterm_pane_list`, `wezterm_pane_split`, and `wezterm_pane_split_and_write` are the exceptions, since they need to know *which* window/tab to operate on when a specific pane isn't given:
 - `wezterm_pane_list` defaults to listing only the panes in the currently focused window and tab. Pass `window_id` and/or `tab_id` to list panes elsewhere.
-- `wezterm_pane_split` defaults to splitting the currently focused pane. If `pane_id` is omitted, pass `window_id`/`tab_id` to split the focused pane within that window/tab instead.
+- `wezterm_pane_split` and `wezterm_pane_split_and_write` default to splitting the currently focused pane. If `pane_id` is omitted, pass `window_id`/`tab_id` to split the focused pane within that window/tab instead.
+
+## Common workflow: split and run
+
+The most common real-world pattern — open a side pane and run something in it while keeping the original pane visible — is `wezterm_pane_split_and_write`, a single call combining split + write:
+
+> Split the focused pane Right and run `npm test`.
+
+This is equivalent to calling `wezterm_pane_split` followed by `wezterm_pane_write` on the returned pane ID, but atomic and requires only one tool call. Since it doesn't return command output, follow up with `wezterm_pane_read` on the new pane ID to see results.
 
 ## Security
 

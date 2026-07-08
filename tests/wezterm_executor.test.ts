@@ -284,6 +284,76 @@ describe("WeztermExecutor", () => {
     });
   });
 
+  describe("splitAndWrite", () => {
+    it("splits the focused pane and writes the command to the new pane", async () => {
+      mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
+        if (args.includes("list-clients")) {
+          callback(null, { stdout: JSON.stringify([{ focused_pane_id: 1 }]), stderr: "" });
+        } else if (args.includes("split-pane")) {
+          expect(args).toEqual(["cli", "split-pane", "--pane-id", "1", "--right"]);
+          callback(null, { stdout: "2\n", stderr: "" });
+        } else if (args.includes("send-text")) {
+          expect(args).toEqual(["cli", "send-text", "--pane-id", "2", "--no-paste", "npm test\n"]);
+          callback(null, { stdout: "", stderr: "" });
+        }
+        return {} as any;
+      });
+
+      const result = await executor.splitAndWrite("npm test", "Right");
+
+      expect(result.content[0].text).toContain("Split pane 1 Right, creating pane 2");
+      expect(result.content[1].text).toBe("Command sent to pane 2: npm test");
+    });
+
+    it("splits an explicit pane_id and writes to the new pane", async () => {
+      mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
+        if (args.includes("split-pane")) {
+          expect(args).toEqual(["cli", "split-pane", "--pane-id", "5", "--bottom"]);
+          callback(null, { stdout: "6\n", stderr: "" });
+        } else if (args.includes("send-text")) {
+          expect(args).toEqual(["cli", "send-text", "--pane-id", "6", "--no-paste", "ls\n"]);
+          callback(null, { stdout: "", stderr: "" });
+        }
+        return {} as any;
+      });
+
+      const result = await executor.splitAndWrite("ls", "Bottom", 5);
+
+      expect(result.content[0].text).toContain("Split pane 5 Bottom, creating pane 6");
+      expect(result.content[1].text).toBe("Command sent to pane 6: ls");
+    });
+
+    it("returns a friendly error when no pane can be resolved", async () => {
+      mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
+        callback(null, { stdout: "[]", stderr: "" });
+        return {} as any;
+      });
+
+      const result = await executor.splitAndWrite("npm test", "Right", undefined, 5, 5);
+
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0].text).toContain("Failed to split and write");
+      expect(result.content[0].text).toContain("could not resolve a target pane");
+    });
+
+    it("returns an error message when the split itself fails", async () => {
+      mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {
+        if (args.includes("split-pane")) {
+          callback(new Error("Split failed"), null);
+        } else {
+          callback(null, { stdout: "", stderr: "" });
+        }
+        return {} as any;
+      });
+
+      const result = await executor.splitAndWrite("npm test", "Right", 1);
+
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0].text).toContain("Failed to split and write");
+      expect(result.content[0].text).toContain("Split failed");
+    });
+  });
+
   describe("switchPane", () => {
     it("switches to the specified pane", async () => {
       mockedExecFile.mockImplementation((file: string, args: any, callback: any) => {

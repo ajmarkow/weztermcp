@@ -13,7 +13,7 @@ const server = new Server(
   {
     name: "weztermcp",
     title: "WezTerm MCP Server",
-    version: "0.1.2",
+    version: "0.2.0",
     description: "Control WezTerm panes, tabs, and windows from an MCP client via the WezTerm CLI.",
     websiteUrl: "https://github.com/ajmarkow/weztermcp",
   },
@@ -192,6 +192,44 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         },
       },
       {
+        name: "wezterm_pane_split_and_write",
+        title: "Split WezTerm Pane and Write",
+        description:
+          "EXECUTION TOOL. Splits a pane and immediately sends a command to the new pane in one call. WHEN: 'run this in a new pane', 'split and run tests', 'open a scratch terminal and run X' — the common workflow of opening a side pane to run something while keeping the original pane visible. Equivalent to wezterm_pane_split followed by wezterm_pane_write, but atomic. Returns the new pane's ID — store it to target subsequent commands. Returns confirmation text only — does NOT return command output; follow with wezterm_pane_read on the new pane ID to capture results. SECURITY: same as wezterm_pane_write — this runs arbitrary shell commands with the user's full permissions. Confirm with the user before sending destructive or irreversible commands. Example: split the focused pane Right and run 'npm test' in the new pane.",
+        inputSchema: {
+          type: "object",
+          properties: {
+            command: {
+              type: "string",
+              description:
+                "Text to send to the newly created pane. A newline (\\n) is automatically appended, causing the shell to execute the input as a command.",
+            },
+            direction: {
+              type: "string",
+              enum: ["Right", "Left", "Top", "Bottom"],
+              description:
+                "Direction in which to create the new pane relative to the existing one. 'Right' and 'Left' split vertically (side by side); 'Top' and 'Bottom' split horizontally (stacked). Must be exactly one of: Right, Left, Top, Bottom (case-sensitive).",
+            },
+            pane_id: {
+              type: "number",
+              description:
+                "Integer ID of the pane to split. Obtain valid IDs from wezterm_pane_list. Default: the currently focused pane, optionally narrowed by window_id/tab_id.",
+            },
+            window_id: {
+              type: "number",
+              description:
+                "Only used when pane_id is omitted. Scopes which window's focused pane is split. Default: the window containing the currently focused pane.",
+            },
+            tab_id: {
+              type: "number",
+              description:
+                "Only used when pane_id is omitted. Scopes which tab's focused pane is split. Default: the tab containing the currently focused pane.",
+            },
+          },
+          required: ["command", "direction"],
+        },
+      },
+      {
         name: "wezterm_window_spawn",
         title: "Spawn WezTerm Window",
         description:
@@ -247,6 +285,15 @@ server.setRequestHandler(CallToolRequestSchema, async (request: any) => {
       return await executor.splitPane(
         request.params.arguments.pane_id,
         request.params.arguments.direction,
+        request.params.arguments.window_id,
+        request.params.arguments.tab_id
+      );
+
+    case "wezterm_pane_split_and_write":
+      return await executor.splitAndWrite(
+        request.params.arguments.command,
+        request.params.arguments.direction,
+        request.params.arguments.pane_id,
         request.params.arguments.window_id,
         request.params.arguments.tab_id
       );

@@ -50,6 +50,32 @@ export default class WeztermExecutor {
     return panes.find(inScope)?.pane_id;
   }
 
+  private async performSplit(
+    paneId: number | undefined,
+    direction: "Right" | "Left" | "Top" | "Bottom",
+    windowId?: number,
+    tabId?: number
+  ): Promise<{ targetPaneId: number; newPaneId: number }> {
+    const targetPaneId =
+      paneId !== undefined ? paneId : await this.resolveTargetPaneId(windowId, tabId);
+
+    if (targetPaneId === undefined) {
+      throw new Error(
+        "could not resolve a target pane. Specify pane_id explicitly, or ensure a WezTerm window/tab is focused."
+      );
+    }
+
+    const dirFlag = `--${direction.toLowerCase()}`;
+    const { stdout } = await execFileAsync("wezterm", [
+      "cli",
+      "split-pane",
+      "--pane-id",
+      String(targetPaneId),
+      dirFlag,
+    ]);
+    return { targetPaneId, newPaneId: Number(stdout.trim()) };
+  }
+
   async writeToTerminal(
     command: string,
     paneId: number
@@ -177,34 +203,18 @@ export default class WeztermExecutor {
   ): Promise<{ content: any[] }> {
     const err = await assertWeztermInstalled();
     if (err) return notInstalledResult();
-    const dirFlag = `--${direction.toLowerCase()}`;
     try {
-      const targetPaneId =
-        paneId !== undefined ? paneId : await this.resolveTargetPaneId(windowId, tabId);
-
-      if (targetPaneId === undefined) {
-        return {
-          content: [
-            {
-              type: "text",
-              text: "Failed to split pane: could not resolve a target pane. Specify pane_id explicitly, or ensure a WezTerm window/tab is focused.",
-            },
-          ],
-        };
-      }
-
-      const { stdout } = await execFileAsync("wezterm", [
-        "cli",
-        "split-pane",
-        "--pane-id",
-        String(targetPaneId),
-        dirFlag,
-      ]);
+      const { targetPaneId, newPaneId } = await this.performSplit(
+        paneId,
+        direction,
+        windowId,
+        tabId
+      );
       return {
         content: [
           {
             type: "text",
-            text: `Split pane ${targetPaneId} ${direction}. New pane id: ${stdout.trim()}`,
+            text: `Split pane ${targetPaneId} ${direction}. New pane id: ${newPaneId}`,
           },
         ],
       };
@@ -214,6 +224,44 @@ export default class WeztermExecutor {
           {
             type: "text",
             text: `Failed to split pane: ${error.message}`,
+          },
+        ],
+      };
+    }
+  }
+
+  async splitAndWrite(
+    command: string,
+    direction: "Right" | "Left" | "Top" | "Bottom",
+    paneId?: number,
+    windowId?: number,
+    tabId?: number
+  ): Promise<{ content: any[] }> {
+    const err = await assertWeztermInstalled();
+    if (err) return notInstalledResult();
+    try {
+      const { targetPaneId, newPaneId } = await this.performSplit(
+        paneId,
+        direction,
+        windowId,
+        tabId
+      );
+      const writeResult = await this.writeToTerminal(command, newPaneId);
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Split pane ${targetPaneId} ${direction}, creating pane ${newPaneId}.`,
+          },
+          ...writeResult.content,
+        ],
+      };
+    } catch (error: any) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Failed to split and write: ${error.message}`,
           },
         ],
       };
