@@ -21,6 +21,7 @@ jobs:
 
   publish:
     needs: test
+    if: github.actor == 'ajmarkow'
     runs-on: ubuntu-latest
     permissions:
       contents: read
