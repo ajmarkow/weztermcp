@@ -25,7 +25,9 @@ const server = new Server(
       "wezterm_pane_write does not return command output — follow it with wezterm_pane_read to see results. " +
       "For a long-running command, wezterm_pane_read is a snapshot, not a wait — call it again after some time to check progress rather than assuming one read captures the final output. " +
       "Call wezterm_pane_list first to discover valid pane_id values before targeting a pane with any other tool. " +
-      "wezterm_pane_close is destructive and irreversible; confirm with the user before closing a pane.",
+      "wezterm_pane_close is destructive and irreversible; confirm with the user before closing a pane. " +
+      "For 'run X in a new pane' or 'open a pane and do X', use wezterm_pane_split_and_write in one call rather than chaining wezterm_pane_split and wezterm_pane_write yourself. " +
+      "'New pane' means split an existing pane, not wezterm_window_spawn — that tool is only for a genuinely separate top-level window.",
   }
 );
 
